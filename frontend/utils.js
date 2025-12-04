@@ -1,4 +1,7 @@
-const API_URL = 'http://localhost:3000/api';
+// Detecta automaticamente a URL da API baseado no ambiente
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:3000/api'
+    : '/api';
 
 function getToken() {
     return localStorage.getItem('token');
