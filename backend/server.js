@@ -562,6 +562,21 @@ app.post('/api/configuracoes/comissao', authMiddleware, adminMiddleware, (req, r
     }
 });
 
+// ============ SERVIR FRONTEND EM PRODUÇÃO ============
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Servir arquivos estáticos do frontend
+app.use(express.static(path.join(__dirname, '../frontend')));
+
+// Rota catch-all para SPA (retorna index.html para todas as rotas não-API)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
     console.log(`\n🚀 Servidor rodando na porta ${PORT}`);
