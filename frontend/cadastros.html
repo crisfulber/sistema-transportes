@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastros - Sistema de Transportes</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 24px;
+            border-bottom: 2px solid var(--gray-lighter);
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--gray);
+            transition: var(--transition);
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M16 3h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4"></path>
+                    <rect x="2" y="3" width="14" height="14" rx="2"></rect>
+                    <circle cx="7" cy="20" r="2"></circle>
+                    <circle cx="17" cy="20" r="2"></circle>
+                </svg>
+                <span>Sistema de Transportes</span>
+            </div>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name" id="userName"></div>
+                    <div class="user-role">Administrador</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Cadastros</h1>
+                <p class="page-subtitle">Gerencie motoristas, produtores, fábricas e preços</p>
+            </div>
+
+            <button class="btn-secondary" onclick="window.location.href='dashboard.html'" style="margin-bottom: 24px;">
+                ← Voltar ao Dashboard
+            </button>
+
+            <div class="card">
+                <div class="tabs">
+                    <button class="tab active" onclick="mudarTab('motoristas')">Motoristas</button>
+                    <button class="tab" onclick="mudarTab('produtores')">Produtores</button>
+                    <button class="tab" onclick="mudarTab('fabricas')">Fábricas</button>
+                    <button class="tab" onclick="mudarTab('racoes')">Rações</button>
+                    <button class="tab" onclick="mudarTab('tipos')">Tipos de Produtor</button>
+                    <button class="tab" onclick="mudarTab('precos')">Tabela de Preços</button>
+                    <button class="tab" onclick="mudarTab('configuracoes')">Configurações</button>
+                </div>
+
+                <!-- Tab Motoristas -->
+                <div id="tab-motoristas" class="tab-content active">
+                    <div class="card-header">
+                        <h2 class="card-title">Motoristas</h2>
+                        <button class="btn-add" onclick="abrirModalMotorista()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Novo Motorista
+                        </button>
+                    </div>
+                    <div id="motoristasContainer"></div>
+                </div>
+
+                <!-- Tab Produtores -->
+                <div id="tab-produtores" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Produtores</h2>
+                        <button class="btn-add" onclick="abrirModalProdutor()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Novo Produtor
+                        </button>
+                    </div>
+                    <div id="produtoresContainer"></div>
+                </div>
+
+                <!-- Tab Fábricas -->
+                <div id="tab-fabricas" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Fábricas</h2>
+                        <button class="btn-add" onclick="abrirModalFabrica()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Nova Fábrica
+                        </button>
+                    </div>
+                    <div id="fabricasContainer"></div>
+                </div>
+
+                <!-- Tab Rações -->
+                <div id="tab-racoes" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Rações</h2>
+                        <button class="btn-add" onclick="abrirModalRacao()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Nova Ração
+                        </button>
+                    </div>
+                    <div id="racoesContainer"></div>
+                </div>
+
+                <!-- Tab Tipos de Produtor -->
+                <div id="tab-tipos" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Tipos de Produtor</h2>
+                        <button class="btn-add" onclick="abrirModalTipo()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Novo Tipo
+                        </button>
+                    </div>
+                    <div id="tiposContainer"></div>
+                </div>
+
+                <!-- Tab Preços -->
+                <div id="tab-precos" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Tabela de Preços</h2>
+                        <button class="btn-add" onclick="abrirModalPreco()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Novo Preço
+                        </button>
+                    </div>
+                    <div id="precosContainer"></div>
+                </div>
+
+                <!-- Tab Configurações -->
+                <div id="tab-configuracoes" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Configurações do Sistema</h2>
+                    </div>
+                    <div style="max-width: 500px;">
+                        <form id="formConfiguracoes">
+                            <div class="form-group">
+                                <label>Comissão do Motorista (%)</label>
+                                <input type="number" id="comissaoMotorista" step="0.1" required>
+                                <small style="color: var(--gray);">Percentual sobre o valor total do frete</small>
+                            </div>
+                            <div id="errorConfig" class="error-message"></div>
+                            <div id="successConfig" class="success-message"></div>
+                            <button type="submit" class="btn-primary" style="margin-top: 16px;">Salvar
+                                Configurações</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modais -->
+    <div id="modalMotorista" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Novo Motorista</h2>
+                <button class="btn-close" onclick="fecharModal('modalMotorista')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formMotorista">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Senha *</label>
+                        <input type="password" name="senha" required>
+                    </div>
+                    <div id="errorMotorista" class="error-message"></div>
+                    <div id="successMotorista" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalMotorista')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalProdutor" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Novo Produtor</h2>
+                <button class="btn-close" onclick="fecharModal('modalProdutor')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formProdutor">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Localização</label>
+                        <input type="text" name="localizacao">
+                    </div>
+                    <div class="form-group">
+                        <label>Tipo *</label>
+                        <select name="tipo_id" required id="selectTipoProdutor">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div id="errorProdutor" class="error-message"></div>
+                    <div id="successProdutor" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalProdutor')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalFabrica" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Fábrica</h2>
+                <button class="btn-close" onclick="fecharModal('modalFabrica')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formFabrica">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div id="errorFabrica" class="error-message"></div>
+                    <div id="successFabrica" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalFabrica')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalRacao" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Ração</h2>
+                <button class="btn-close" onclick="fecharModal('modalRacao')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formRacao">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div id="errorRacao" class="error-message"></div>
+                    <div id="successRacao" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalRacao')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalTipo" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Novo Tipo de Produtor</h2>
+                <button class="btn-close" onclick="fecharModal('modalTipo')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formTipo">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required>
+                    </div>
+                    <div id="errorTipo" class="error-message"></div>
+                    <div id="successTipo" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary" onclick="fecharModal('modalTipo')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalPreco" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Novo Preço</h2>
+                <button class="btn-close" onclick="fecharModal('modalPreco')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formPreco">
+                    <div class="form-group">
+                        <label>Tipo de Produtor *</label>
+                        <select name="tipo_produtor_id" required id="selectTipoPreco">
+                            <option value="">Selecione...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor por Tonelada (R$) *</label>
+                        <input type="number" name="valor_por_tonelada" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Valor Fixo (R$)</label>
+                        <input type="number" name="valor_fixo" step="0.01">
+                        <small style="color: var(--gray);">Para cargas abaixo da tonelagem mínima</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Tonelagem Mínima</label>
+                        <input type="number" name="tonelagem_minima" step="0.01">
+                        <small style="color: var(--gray);">Deixe em branco para sempre usar valor por tonelada</small>
+                    </div>
+                    <div class="form-group">
+                        <label>Data de Vigência *</label>
+                        <input type="date" name="vigencia_inicio" required>
+                    </div>
+                    <div id="errorPreco" class="error-message"></div>
+                    <div id="successPreco" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalPreco')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="cadastros.js"></script>
+</body>
+
+</html>

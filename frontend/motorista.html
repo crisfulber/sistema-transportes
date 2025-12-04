@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Cargas - Sistema de Transportes</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="dashboard">
+        <nav class="navbar">
+            <div class="navbar-brand">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path d="M16 3h4a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4"></path>
+                    <rect x="2" y="3" width="14" height="14" rx="2"></rect>
+                    <circle cx="7" cy="20" r="2"></circle>
+                    <circle cx="17" cy="20" r="2"></circle>
+                </svg>
+                <span>Sistema de Transportes</span>
+            </div>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name" id="userName"></div>
+                    <div class="user-role">Motorista</div>
+                </div>
+                <button class="btn-logout" onclick="logout()">Sair</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="page-header">
+                <h1 class="page-title">Minhas Cargas</h1>
+                <p class="page-subtitle">Gerencie suas cargas de transporte</p>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-label">Cargas no Mês</div>
+                            <div class="stat-value" id="totalCargas">0</div>
+                        </div>
+                        <div class="stat-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M20 7h-9M14 3v4M6 21V3M3 21h18"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-label">Total Transportado</div>
+                            <div class="stat-value" id="totalKg">0</div>
+                            <div class="stat-footer">toneladas</div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path
+                                    d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z">
+                                </path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-label">Valor Total</div>
+                            <div class="stat-value" id="valorTotal">R$ 0</div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-label">KM Rodados</div>
+                            <div class="stat-value" id="totalKm">0</div>
+                            <div class="stat-footer">quilômetros</div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Cargas Cadastradas</h2>
+                    <button class="btn-add" onclick="abrirModalNovaCarga()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Nova Carga
+                    </button>
+                </div>
+
+                <div id="cargasContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Carregando cargas...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nova Carga -->
+    <div id="modalNovaCarga" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Nova Carga</h2>
+                <button class="btn-close" onclick="fecharModalNovaCarga()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaCarga">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="data">Data *</label>
+                            <input type="date" id="data" name="data" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="km_inicial">KM Inicial *</label>
+                            <input type="number" id="km_inicial" name="km_inicial" step="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="km_final">KM Final</label>
+                            <input type="number" id="km_final" name="km_final" step="0.1">
+                            <small style="color: var(--gray);">Opcional no cadastro</small>
+                        </div>
+                    </div>
+
+                    <div id="itensContainer">
+                        <h3 style="margin: 24px 0 16px;">Itens da Carga</h3>
+                        <div class="item-carga" data-index="0">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Fábrica *</label>
+                                    <select name="fabrica_id" required>
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Ração *</label>
+                                    <select name="racao_id" required>
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Produtor *</label>
+                                    <select name="produtor_id" required>
+                                        <option value="">Selecione...</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Nota Fiscal *</label>
+                                    <input type="text" name="nota_fiscal" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Quantidade (kg) *</label>
+                                    <input type="number" name="quantidade_kg" step="0.01" required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-add" onclick="adicionarItem()" style="margin: 16px 0;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Adicionar Produtor
+                    </button>
+
+                    <div id="errorMessage" class="error-message"></div>
+                    <div id="successMessage" class="success-message"></div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar Carga</button>
+                        <button type="button" class="btn-secondary" onclick="fecharModalNovaCarga()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Finalizar Carga -->
+    <div id="modalFinalizarCarga" class="modal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Finalizar Carga</h2>
+                <button class="btn-close" onclick="fecharModalFinalizar()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formFinalizarCarga">
+                    <input type="hidden" id="finalizarCargaId">
+                    <div class="form-group">
+                        <label for="finalizarKmFinal">KM Final *</label>
+                        <input type="number" id="finalizarKmFinal" name="km_final" step="0.1" required>
+                    </div>
+
+                    <div id="errorFinalizar" class="error-message"></div>
+                    <div id="successFinalizar" class="success-message"></div>
+
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary" onclick="fecharModalFinalizar()">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Detalhes da Carga -->
+    <div id="modalDetalhes" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Detalhes da Carga</h2>
+                <button class="btn-close" onclick="fecharModalDetalhes()">&times;</button>
+            </div>
+            <div class="modal-body" id="detalhesContent">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="utils.js"></script>
+    <script src="motorista.js"></script>
+</body>
+
+</html>

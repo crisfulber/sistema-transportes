@@ -1,0 +1,26 @@
+# Dependências
+node_modules/
+
+# Banco de dados (não versionar dados locais)
+backend/database.db
+
+# Variáveis de ambiente
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Scripts temporários
+backend/migrate.js
+backend/fix_db.js
