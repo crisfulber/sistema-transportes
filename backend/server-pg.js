@@ -598,8 +598,15 @@ app.use((req, res, next) => {
     next();
 });
 
+// Determinar caminho do frontend (public/ em produção, ../frontend em dev)
+const frontendPath = process.env.NODE_ENV === 'production'
+    ? path.join(__dirname, 'public')
+    : path.join(__dirname, '../frontend');
+
+console.log(`📁 Servindo frontend de: ${frontendPath}`);
+
 // Servir arquivos estáticos SEM cache
-app.use(express.static(path.join(__dirname, '../frontend'), {
+app.use(express.static(frontendPath, {
     maxAge: 0,
     etag: false,
     lastModified: false,
@@ -613,7 +620,7 @@ app.use(express.static(path.join(__dirname, '../frontend'), {
 app.get('*', (req, res) => {
     console.log(`🔀 Fallback para index.html: ${req.path}`);
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
-    res.sendFile(path.join(__dirname, '../frontend/index.html'));
+    res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // Iniciar servidor

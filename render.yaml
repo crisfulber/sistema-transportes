@@ -5,7 +5,7 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd backend && npm install && node init-db-postgres.js
+    buildCommand: cd backend && npm install && node init-db-postgres.js && mkdir -p public && cp -r ../frontend/* public/
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
