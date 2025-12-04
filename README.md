@@ -1,5 +1,10 @@
 # Sistema de Gestão de Transportes de Ração
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)
+![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux%20%7C%20Windows-lightgrey.svg)
+![Status](https://img.shields.io/badge/status-active-success.svg)
+
 Sistema web completo para gerenciar cargas de transporte de ração de suínos, com controle de motoristas, produtores, fábricas e cálculo automático de fretes.
 
 ## 🚀 Tecnologias Utilizadas
@@ -17,7 +22,7 @@ Sistema web completo para gerenciar cargas de transporte de ração de suínos, 
 
 ## 📋 Pré-requisitos
 
-Você precisa ter o **Node.js** instalado no seu computador.
+Você precisa ter o **Node.js** (versão 18 ou superior) instalado no seu computador.
 
 ### Instalando o Node.js no macOS
 
@@ -28,7 +33,7 @@ Você precisa ter o **Node.js** instalado no seu computador.
 
 2. Instale o Node.js:
 ```bash
-brew install node
+brew install node@22
 ```
 
 3. Verifique a instalação:
@@ -39,14 +44,29 @@ npm --version
 
 ## 🔧 Instalação
 
-### 1. Instalar dependências do backend
+### 1. Clone o repositório
+
+```bash
+git clone https://github.com/crisfulber/sistema-transportes.git
+cd sistema-transportes
+```
+
+### 2. Configure as variáveis de ambiente
 
 ```bash
 cd backend
+cp .env.example .env
+```
+
+Edite o arquivo `.env` e altere o `JWT_SECRET` para uma chave segura.
+
+### 3. Instale as dependências
+
+```bash
 npm install
 ```
 
-### 2. Iniciar o servidor backend
+### 4. Inicie o servidor backend
 
 ```bash
 npm start
@@ -54,16 +74,14 @@ npm start
 
 O servidor estará rodando em `http://localhost:3000`
 
-### 3. Abrir o frontend
+### 5. Abra o frontend
 
-Em outro terminal, navegue até a pasta frontend e abra com um servidor HTTP simples:
+Em outro terminal:
 
 ```bash
 cd frontend
 python3 -m http.server 8080
 ```
-
-Ou use qualquer outro servidor HTTP de sua preferência.
 
 Acesse no navegador: `http://localhost:8080`
 
@@ -85,17 +103,21 @@ Acesse no navegador: `http://localhost:8080`
 ### Para Motoristas
 - ✅ Login individual
 - ✅ Cadastro de cargas com múltiplos produtores
+- ✅ KM final opcional (finalizar carga depois)
 - ✅ Visualização de cargas do mês
 - ✅ Dashboard com estatísticas pessoais
+- ✅ Visualização de comissão (12% configurável)
 - ✅ Detalhamento de cada carga
 
 ### Para Administradores
 - ✅ Dashboard geral com desempenho de todos os motoristas
+- ✅ Relatório de conferência (NF, Produtor, Motorista)
 - ✅ Cadastro de motoristas
 - ✅ Cadastro de produtores e tipos
 - ✅ Cadastro de fábricas
 - ✅ Cadastro de rações
 - ✅ Tabela de preços configurável
+- ✅ Configuração de percentual de comissão
 - ✅ Visualização de todas as cargas
 
 ## 💰 Regras de Cálculo de Frete
@@ -112,6 +134,9 @@ O sistema calcula automaticamente o valor do frete baseado nas seguintes regras:
 ### Cargas com Múltiplos Produtores
 O valor é calculado sobre o total da carga e depois rateado proporcionalmente entre os produtores conforme a quantidade de cada um.
 
+### Comissão do Motorista
+O motorista recebe 12% (configurável) do valor total do frete.
+
 ## 📊 Estrutura do Banco de Dados
 
 O sistema cria automaticamente as seguintes tabelas:
@@ -124,6 +149,7 @@ O sistema cria automaticamente as seguintes tabelas:
 - **tabela_precos** - Valores de frete por tipo de produtor
 - **cargas** - Cargas transportadas
 - **itens_carga** - Itens de cada carga (produtores)
+- **configuracoes** - Configurações do sistema (comissões, etc)
 
 ## 🎨 Características do Design
 
@@ -139,6 +165,7 @@ O sistema cria automaticamente as seguintes tabelas:
 - Autenticação via JWT
 - Proteção de rotas administrativas
 - Validação de dados no backend
+- Variáveis de ambiente para dados sensíveis
 
 ## 📝 Dados Pré-cadastrados
 
@@ -174,6 +201,11 @@ O sistema já vem com os seguintes dados:
 2. Acesse "Cadastros" → "Tabela de Preços"
 3. Adicione novo preço com data de vigência
 
+### Alterar Comissão dos Motoristas
+1. Faça login como administrador
+2. Acesse "Cadastros" → "Configurações"
+3. Altere o percentual de comissão
+
 ### Adicionar Novo Motorista
 1. Faça login como administrador
 2. Acesse "Cadastros" → "Motoristas"
@@ -181,6 +213,12 @@ O sistema já vem com os seguintes dados:
 
 ### Backup do Banco de Dados
 O arquivo `database.db` na pasta `backend` contém todos os dados. Faça backup regular deste arquivo.
+
+### Visualizar Dados do Banco
+```bash
+cd backend
+node ver_dados.js
+```
 
 ## 🐛 Solução de Problemas
 
@@ -196,12 +234,19 @@ O arquivo `database.db` na pasta `backend` contém todos os dados. Faça backup 
 - Abra o console do navegador (F12) para ver erros
 - Verifique se a API está respondendo corretamente
 
-## 📞 Suporte
+## 📄 Licença
 
-Para dúvidas ou problemas, verifique:
-1. Console do navegador (F12)
-2. Logs do servidor backend
-3. Arquivo `database.db` existe e tem permissões corretas
+Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
+
+## 🤝 Contribuindo
+
+Contribuições são bem-vindas! Sinta-se à vontade para:
+
+1. Fazer um fork do projeto
+2. Criar uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abrir um Pull Request
 
 ## 🚀 Próximas Melhorias Sugeridas
 
@@ -212,7 +257,8 @@ Para dúvidas ou problemas, verifique:
 - [ ] Notificações por email
 - [ ] App mobile nativo
 - [ ] Integração com sistemas de pagamento
+- [ ] Testes automatizados
 
 ---
 
-Desenvolvido para gestão eficiente de transportes de ração 🚛
+Desenvolvido com ❤️ para gestão eficiente de transportes de ração 🚛
