@@ -70,9 +70,28 @@ function formatNumber(value, decimals = 0) {
     }).format(value || 0);
 }
 
-function formatDate(dateString) {
-    if (!dateString) return '-';
-    const date = new Date(dateString + 'T00:00:00');
+function formatDate(dateInput) {
+    if (!dateInput) return '-';
+
+    let date;
+    // Se já for um objeto Date
+    if (dateInput instanceof Date) {
+        date = dateInput;
+    }
+    // Se for string ISO (ex: 2024-12-04T00:00:00.000Z) ou data simples (2024-12-04)
+    else {
+        // Tenta criar data diretamente
+        date = new Date(dateInput);
+
+        // Se der inválido e for string YYYY-MM-DD, tenta adicionar time
+        if (isNaN(date.getTime()) && typeof dateInput === 'string' && dateInput.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            date = new Date(dateInput + 'T00:00:00');
+        }
+    }
+
+    // Se ainda for inválido
+    if (isNaN(date.getTime())) return '-';
+
     return date.toLocaleDateString('pt-BR');
 }
 
