@@ -5,7 +5,7 @@ services:
     env: node
     region: oregon
     plan: free
-    buildCommand: cd backend && npm install && node init-db-postgres.js && mkdir -p public && cp -r ../frontend/* public/
+    buildCommand: cd backend && npm install && node init-db-postgres.js && mkdir -p public && cp -r ../frontend/* public/ && TIMESTAMP=$(date +%s) && sed -i "s/styles\.v3\.css/styles.v3.css?t=$TIMESTAMP/g" public/*.html
     startCommand: cd backend && npm run start:prod
     envVars:
       - key: NODE_ENV
