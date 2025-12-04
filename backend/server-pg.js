@@ -590,9 +590,26 @@ app.post('/api/configuracoes/comissao', authMiddleware, adminMiddleware, async (
 });
 
 // ============ SERVIR FRONTEND EM PRODUÇÃO ============
+// Middleware para desabilitar cache (útil durante desenvolvimento/debug)
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
+
+// Log de requisições de arquivos estáticos para debug
+app.use((req, res, next) => {
+    if (!req.path.startsWith('/api')) {
+        console.log(`📄 Servindo: ${req.path}`);
+    }
+    next();
+});
+
 app.use(express.static(path.join(__dirname, '../frontend')));
 
 app.get('*', (req, res) => {
+    console.log(`🔀 Fallback para index.html: ${req.path}`);
     res.sendFile(path.join(__dirname, '../frontend/index.html'));
 });
 
