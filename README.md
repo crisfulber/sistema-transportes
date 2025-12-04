@@ -91,12 +91,9 @@ Acesse no navegador: `http://localhost:8080`
 - **Username:** admin
 - **Senha:** admin123
 
-### Motoristas (senha padrão: 123456)
-- **adalberto.lunkes**
-- **anderson.menezes**
-- **danrley.amaral**
-- **maureci.schulz**
-- **tiago.silva**
+### Motoristas
+O sistema vem com 5 motoristas pré-cadastrados para demonstração.
+- **Senha padrão:** 123456
 
 ## 📱 Funcionalidades
 
@@ -106,7 +103,7 @@ Acesse no navegador: `http://localhost:8080`
 - ✅ KM final opcional (finalizar carga depois)
 - ✅ Visualização de cargas do mês
 - ✅ Dashboard com estatísticas pessoais
-- ✅ Visualização de comissão (12% configurável)
+- ✅ Visualização de comissão (configurável)
 - ✅ Detalhamento de cada carga
 
 ### Para Administradores
@@ -122,20 +119,21 @@ Acesse no navegador: `http://localhost:8080`
 
 ## 💰 Regras de Cálculo de Frete
 
-O sistema calcula automaticamente o valor do frete baseado nas seguintes regras:
+O sistema calcula automaticamente o valor do frete baseado em regras configuráveis:
 
-### UPD e Recria
-- **R$ 70,00 por tonelada** independente da quantidade
+### Tipos de Produtor
+O sistema suporta diferentes tipos de produtores, cada um com suas próprias regras de precificação:
 
-### Creche e Terminação
-- **Acima de 17 toneladas:** R$ 70,00 por tonelada
-- **Abaixo de 17 toneladas:** R$ 1.190,00 fixo
+- **Tipo A e Tipo B:** Valor fixo por tonelada
+- **Tipo C e Tipo D:** 
+  - Acima de X toneladas: valor por tonelada
+  - Abaixo de X toneladas: valor fixo
 
 ### Cargas com Múltiplos Produtores
 O valor é calculado sobre o total da carga e depois rateado proporcionalmente entre os produtores conforme a quantidade de cada um.
 
 ### Comissão do Motorista
-O motorista recebe 12% (configurável) do valor total do frete.
+O motorista recebe um percentual (configurável) do valor total do frete.
 
 ## 📊 Estrutura do Banco de Dados
 
@@ -144,8 +142,8 @@ O sistema cria automaticamente as seguintes tabelas:
 - **usuarios** - Motoristas e administradores
 - **fabricas** - Fábricas de ração
 - **racoes** - Tipos de ração
-- **tipos_produtor** - UPD, Recria, Creche, Terminação
-- **produtores** - Produtores de suínos
+- **tipos_produtor** - Categorias de produtores
+- **produtores** - Produtores cadastrados
 - **tabela_precos** - Valores de frete por tipo de produtor
 - **cargas** - Cargas transportadas
 - **itens_carga** - Itens de cada carga (produtores)
@@ -169,30 +167,24 @@ O sistema cria automaticamente as seguintes tabelas:
 
 ## 📝 Dados Pré-cadastrados
 
-O sistema já vem com os seguintes dados:
+O sistema já vem com dados de demonstração:
 
 ### Fábricas
-- SS Rações
-- Vaccinar
-- Exnor
+- 3 fábricas de exemplo
 
 ### Rações
-- Lactação, Gestação, Recria, Reposição
-- Alojamento
-- Crescimento 1 e 2
-- Terminação 1, 2 e 3
+- 10 tipos de ração para demonstração
 
 ### Tipos de Produtor
-- UPD
-- Recria
-- Creche
-- Terminação
+- 4 categorias diferentes
 
 ### Produtores
-- Marcio Bickel (São Roque) - UPD
-- Adriano Alberton - Terminação
-- Rogerio Kolling - Creche
-- Marcelo Steffens - Recria
+- 4 produtores de exemplo
+
+### Motoristas
+- 5 motoristas para testes
+
+**Nota:** Todos os dados pré-cadastrados são apenas para demonstração e devem ser substituídos por dados reais em produção.
 
 ## 🛠️ Manutenção
 
