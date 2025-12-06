@@ -7,7 +7,7 @@ if (usuario.tipo !== 'admin' && usuario.tipo !== 'consulta') {
     window.location.href = 'motorista.html';
 }
 
-// Esconder botões de cadastro para usuários de consulta
+// Esconder botões de cadastro para Usuários
 if (usuario.tipo === 'consulta') {
     const cadastrosCard = document.getElementById('cadastrosCard');
     if (cadastrosCard) {

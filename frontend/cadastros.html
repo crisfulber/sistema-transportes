@@ -13,6 +13,12 @@
             gap: 8px;
             margin-bottom: 24px;
             border-bottom: 2px solid var(--gray-lighter);
+            overflow-x: auto;
+            /* Scroll horizontal */
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 5px;
+            /* Espaço para scrollbar se visível */
         }
 
         .tab {
@@ -24,6 +30,8 @@
             font-weight: 600;
             color: var(--gray);
             transition: var(--transition);
+            flex-shrink: 0;
+            /* Não espremer */
         }
 
         .tab.active {
@@ -74,13 +82,13 @@
             <div class="card">
                 <div class="tabs">
                     <button class="tab active" onclick="mudarTab('motoristas')">Motoristas</button>
-                    <button class="tab" onclick="mudarTab('consultas')">Usuários de Consulta</button>
+                    <button class="tab" onclick="mudarTab('consultas')">Usuários</button>
                     <button class="tab" onclick="mudarTab('produtores')">Produtores</button>
                     <button class="tab" onclick="mudarTab('fabricas')">Fábricas</button>
                     <button class="tab" onclick="mudarTab('racoes')">Rações</button>
                     <button class="tab" onclick="mudarTab('tipos')">Tipos de Produtor</button>
                     <button class="tab" onclick="mudarTab('precos')">Tabela de Preços</button>
-                    <button class="tab" onclick="mudarTab('configuracoes')">Configurações</button>
+                    <button class="tab" onclick="mudarTab('configuracoes')">Comissões</button>
                 </div>
 
                 <!-- Tab Motoristas -->
@@ -93,23 +101,23 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Novo Motorista
+                            Novo
                         </button>
                     </div>
                     <div id="motoristasContainer"></div>
                 </div>
 
-                <!-- Tab Usuários de Consulta -->
+                <!-- Tab Usuários -->
                 <div id="tab-consultas" class="tab-content">
                     <div class="card-header">
-                        <h2 class="card-title">Usuários de Consulta</h2>
+                        <h2 class="card-title">Usuários</h2>
                         <button class="btn-add" onclick="abrirModalConsulta()">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2">
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Novo Usuário de Consulta
+                            Novo
                         </button>
                     </div>
                     <div id="consultasContainer"></div>
@@ -125,7 +133,7 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Novo Produtor
+                            Novo
                         </button>
                     </div>
                     <div id="produtoresContainer"></div>
@@ -141,7 +149,7 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Nova Fábrica
+                            Novo
                         </button>
                     </div>
                     <div id="fabricasContainer"></div>
@@ -157,7 +165,7 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Nova Ração
+                            Novo
                         </button>
                     </div>
                     <div id="racoesContainer"></div>
@@ -173,7 +181,7 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Novo Tipo
+                            Novo
                         </button>
                     </div>
                     <div id="tiposContainer"></div>
@@ -189,7 +197,7 @@
                                 <line x1="12" y1="5" x2="12" y2="19"></line>
                                 <line x1="5" y1="12" x2="19" y2="12"></line>
                             </svg>
-                            Novo Preço
+                            Novo
                         </button>
                     </div>
                     <div id="precosContainer"></div>

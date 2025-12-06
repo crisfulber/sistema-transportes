@@ -360,6 +360,39 @@ app.post('/api/motoristas', authMiddleware, adminMiddleware, async (req, res) =>
         res.status(500).json({ error: 'Erro ao criar motorista' });
     }
 });
+app.put('/api/motoristas/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, username, senha, ativo } = req.body;
+
+        if (!nome || !username) {
+            return res.status(400).json({ error: 'Dados incompletos' });
+        }
+
+        let query = 'UPDATE usuarios SET nome = $1, username = $2, ativo = $3';
+        let params = [nome, username, ativo !== undefined ? ativo : 1];
+        let count = 4;
+
+        if (senha) {
+            const senhaHash = bcrypt.hashSync(senha, 10);
+            query += `, senha = $${count}`;
+            params.push(senhaHash);
+            count++;
+        }
+
+        query += ` WHERE id = $${count} AND tipo = 'motorista'`;
+        params.push(id);
+
+        await pool.query(query, params);
+        res.json({ message: 'Motorista atualizado com sucesso' });
+    } catch (error) {
+        if (error.message.includes('unique')) {
+            return res.status(400).json({ error: 'Username já existe' });
+        }
+        console.error('Erro ao atualizar motorista:', error);
+        res.status(500).json({ error: 'Erro ao atualizar motorista' });
+    }
+});
 
 // ============ ROTAS DE USUÁRIOS (GENÉRICO) ============
 app.get('/api/usuarios', authMiddleware, adminMiddleware, async (req, res) => {
@@ -414,6 +447,40 @@ app.post('/api/usuarios', authMiddleware, adminMiddleware, async (req, res) => {
         res.status(500).json({ error: 'Erro ao criar usuário' });
     }
 });
+app.put('/api/usuarios/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, username, senha, tipo, ativo } = req.body;
+
+        if (!nome || !username || !tipo) {
+            return res.status(400).json({ error: 'Dados incompletos' });
+        }
+
+        let query = 'UPDATE usuarios SET nome = $1, username = $2, tipo = $3, ativo = $4';
+        let params = [nome, username, tipo, ativo !== undefined ? ativo : 1];
+        let count = 5;
+
+        // Se senha foi fornecida, atualiza
+        if (senha) {
+            const senhaHash = bcrypt.hashSync(senha, 10);
+            query += `, senha = $${count}`;
+            params.push(senhaHash);
+            count++;
+        }
+
+        query += ` WHERE id = $${count}`;
+        params.push(id);
+
+        await pool.query(query, params);
+        res.json({ message: 'Usuário atualizado com sucesso' });
+    } catch (error) {
+        if (error.message.includes('unique')) {
+            return res.status(400).json({ error: 'Username já existe' });
+        }
+        console.error('Erro ao atualizar usuário:', error);
+        res.status(500).json({ error: 'Erro ao atualizar usuário' });
+    }
+});
 
 app.get('/api/fabricas', authMiddleware, async (req, res) => {
     try {
@@ -440,6 +507,20 @@ app.post('/api/fabricas', authMiddleware, adminMiddleware, async (req, res) => {
         }
         console.error('Erro ao criar fábrica:', error);
         res.status(500).json({ error: 'Erro ao criar fábrica' });
+    }
+});
+app.put('/api/fabricas/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, ativo } = req.body;
+
+        if (!nome) return res.status(400).json({ error: 'Nome obrigatório' });
+
+        await pool.query('UPDATE fabricas SET nome = $1, ativo = $2 WHERE id = $3', [nome, ativo !== undefined ? ativo : 1, id]);
+        res.json({ message: 'Fábrica atualizada com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar fábrica:', error);
+        res.status(500).json({ error: 'Erro ao atualizar fábrica' });
     }
 });
 
@@ -470,6 +551,20 @@ app.post('/api/racoes', authMiddleware, adminMiddleware, async (req, res) => {
         res.status(500).json({ error: 'Erro ao criar ração' });
     }
 });
+app.put('/api/racoes/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, ativo } = req.body;
+
+        if (!nome) return res.status(400).json({ error: 'Nome obrigatório' });
+
+        await pool.query('UPDATE racoes SET nome = $1, ativo = $2 WHERE id = $3', [nome, ativo !== undefined ? ativo : 1, id]);
+        res.json({ message: 'Ração atualizada com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar ração:', error);
+        res.status(500).json({ error: 'Erro ao atualizar ração' });
+    }
+});
 
 app.get('/api/tipos-produtor', authMiddleware, async (req, res) => {
     try {
@@ -496,6 +591,20 @@ app.post('/api/tipos-produtor', authMiddleware, adminMiddleware, async (req, res
         }
         console.error('Erro ao criar tipo de produtor:', error);
         res.status(500).json({ error: 'Erro ao criar tipo de produtor' });
+    }
+});
+app.put('/api/tipos-produtor/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, ativo } = req.body;
+
+        if (!nome) return res.status(400).json({ error: 'Nome obrigatório' });
+
+        await pool.query('UPDATE tipos_produtor SET nome = $1, ativo = $2 WHERE id = $3', [nome, ativo !== undefined ? ativo : 1, id]);
+        res.json({ message: 'Tipo atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar tipo:', error);
+        res.status(500).json({ error: 'Erro ao atualizar tipo' });
     }
 });
 
@@ -530,6 +639,23 @@ app.post('/api/produtores', authMiddleware, adminMiddleware, async (req, res) =>
     } catch (error) {
         console.error('Erro ao criar produtor:', error);
         res.status(500).json({ error: 'Erro ao criar produtor' });
+    }
+});
+app.put('/api/produtores/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nome, localizacao, tipo_id, ativo } = req.body;
+
+        if (!nome || !tipo_id) return res.status(400).json({ error: 'Nome e Tipo obrigatórios' });
+
+        await pool.query(
+            'UPDATE produtores SET nome = $1, localizacao = $2, tipo_id = $3, ativo = $4 WHERE id = $5',
+            [nome, localizacao, tipo_id, ativo !== undefined ? ativo : 1, id]
+        );
+        res.json({ message: 'Produtor atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar produtor:', error);
+        res.status(500).json({ error: 'Erro ao atualizar produtor' });
     }
 });
 
@@ -567,6 +693,27 @@ app.post('/api/precos', authMiddleware, adminMiddleware, async (req, res) => {
     } catch (error) {
         console.error('Erro ao criar preço:', error);
         res.status(500).json({ error: 'Erro ao criar preço' });
+    }
+});
+app.put('/api/precos/:id', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { tipo_produtor_id, valor_por_tonelada, valor_fixo, tonelagem_minima, vigencia_inicio, ativo } = req.body;
+
+        if (!tipo_produtor_id || !valor_por_tonelada || !vigencia_inicio) {
+            return res.status(400).json({ error: 'Dados incompletos' });
+        }
+
+        await pool.query(
+            `UPDATE tabela_precos 
+             SET tipo_produtor_id = $1, valor_por_tonelada = $2, valor_fixo = $3, tonelagem_minima = $4, vigencia_inicio = $5, ativo = $6 
+             WHERE id = $7`,
+            [tipo_produtor_id, valor_por_tonelada, valor_fixo || null, tonelagem_minima || null, vigencia_inicio, ativo !== undefined ? ativo : 1, id]
+        );
+        res.json({ message: 'Preço atualizado com sucesso' });
+    } catch (error) {
+        console.error('Erro ao atualizar preço:', error);
+        res.status(500).json({ error: 'Erro ao atualizar preço' });
     }
 });
 
