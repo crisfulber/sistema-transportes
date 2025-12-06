@@ -336,6 +336,60 @@ app.post('/api/motoristas', authMiddleware, adminMiddleware, async (req, res) =>
     }
 });
 
+// ============ ROTAS DE USUÁRIOS (GENÉRICO) ============
+app.get('/api/usuarios', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { tipo } = req.query;
+        let query = 'SELECT id, nome, username, tipo, ativo FROM usuarios';
+        const params = [];
+
+        if (tipo) {
+            query += ' WHERE tipo = $1';
+            params.push(tipo);
+        }
+
+        query += ' ORDER BY nome';
+
+        const result = await pool.query(query, params);
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Erro ao buscar usuários:', error);
+        res.status(500).json({ error: 'Erro ao buscar usuários' });
+    }
+});
+
+app.post('/api/usuarios', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        const { nome, username, senha, tipo } = req.body;
+
+        if (!nome || !username || !senha || !tipo) {
+            return res.status(400).json({ error: 'Dados incompletos' });
+        }
+
+        // Validar tipo
+        if (!['admin', 'motorista', 'consulta'].includes(tipo)) {
+            return res.status(400).json({ error: 'Tipo de usuário inválido' });
+        }
+
+        const senhaHash = bcrypt.hashSync(senha, 10);
+        const result = await pool.query(
+            'INSERT INTO usuarios (nome, username, senha, tipo) VALUES ($1, $2, $3, $4) RETURNING id',
+            [nome, username, senhaHash, tipo]
+        );
+
+        res.status(201).json({
+            id: result.rows[0].id,
+            message: `Usuário de ${tipo} cadastrado com sucesso`
+        });
+    } catch (error) {
+        if (error.message.includes('unique') || error.code === '23505') {
+            return res.status(400).json({ error: 'Username já existe' });
+        }
+        console.error('Erro ao criar usuário:', error);
+        res.status(500).json({ error: 'Erro ao criar usuário' });
+    }
+});
+
 app.get('/api/fabricas', authMiddleware, async (req, res) => {
     try {
         const result = await pool.query('SELECT * FROM fabricas WHERE ativo = 1 ORDER BY nome');

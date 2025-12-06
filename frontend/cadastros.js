@@ -71,6 +71,73 @@ document.getElementById('formMotorista').addEventListener('submit', async (e) =>
     }
 });
 
+// USUÁRIOS DE CONSULTA
+async function carregarConsultas() {
+    const container = document.getElementById('consultasContainer');
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando...</p></div>';
+
+    try {
+        const usuarios = await apiRequest('/usuarios?tipo=consulta');
+
+        if (usuarios.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3>Nenhum usuário de consulta cadastrado</h3>
+                    <p>Clique em "Novo Usuário de Consulta" para adicionar</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = `
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Nome</th><th>Username</th><th>Status</th></tr></thead>
+                    <tbody>
+                        ${usuarios.map(u => `
+                            <tr>
+                                <td><strong>${u.nome}</strong></td>
+                                <td>${u.username}</td>
+                                <td><span class="badge badge-${u.ativo ? 'success' : 'warning'}">${u.ativo ? 'Ativo' : 'Inativo'}</span></td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = `<div class="error-message show">Erro: ${error.message}</div>`;
+    }
+}
+
+function abrirModalConsulta() {
+    document.getElementById('modalConsulta').classList.add('show');
+    document.getElementById('formConsulta').reset();
+}
+
+document.getElementById('formConsulta').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = Object.fromEntries(formData);
+    data.tipo = 'consulta'; // Força o tipo como consulta
+
+    try {
+        await apiRequest('/usuarios', { method: 'POST', body: JSON.stringify(data) });
+        showSuccess('Usuário de consulta cadastrado com sucesso!', 'successConsulta');
+        setTimeout(() => {
+            fecharModal('modalConsulta');
+            carregarConsultas();
+        }, 1500);
+    } catch (error) {
+        showError(error.message, 'errorConsulta');
+    }
+});
+
 // PRODUTORES
 async function carregarProdutores() {
     const container = document.getElementById('produtoresContainer');
@@ -358,6 +425,7 @@ document.getElementById('formConfiguracoes').addEventListener('submit', async (e
 function carregarDados(tipo) {
     switch (tipo) {
         case 'motoristas': carregarMotoristas(); break;
+        case 'consultas': carregarConsultas(); break;
         case 'produtores': carregarProdutores(); break;
         case 'fabricas': carregarFabricas(); break;
         case 'racoes': carregarRacoes(); break;

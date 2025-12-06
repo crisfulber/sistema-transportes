@@ -74,6 +74,7 @@
             <div class="card">
                 <div class="tabs">
                     <button class="tab active" onclick="mudarTab('motoristas')">Motoristas</button>
+                    <button class="tab" onclick="mudarTab('consultas')">Usuários de Consulta</button>
                     <button class="tab" onclick="mudarTab('produtores')">Produtores</button>
                     <button class="tab" onclick="mudarTab('fabricas')">Fábricas</button>
                     <button class="tab" onclick="mudarTab('racoes')">Rações</button>
@@ -96,6 +97,22 @@
                         </button>
                     </div>
                     <div id="motoristasContainer"></div>
+                </div>
+
+                <!-- Tab Usuários de Consulta -->
+                <div id="tab-consultas" class="tab-content">
+                    <div class="card-header">
+                        <h2 class="card-title">Usuários de Consulta</h2>
+                        <button class="btn-add" onclick="abrirModalConsulta()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Novo Usuário de Consulta
+                        </button>
+                    </div>
+                    <div id="consultasContainer"></div>
                 </div>
 
                 <!-- Tab Produtores -->
@@ -228,6 +245,39 @@
                         <button type="submit" class="btn-primary">Salvar</button>
                         <button type="button" class="btn-secondary"
                             onclick="fecharModal('modalMotorista')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalConsulta" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Novo Usuário de Consulta</h2>
+                <button class="btn-close" onclick="fecharModal('modalConsulta')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formConsulta">
+                    <div class="form-group">
+                        <label>Nome *</label>
+                        <input type="text" name="nome" required placeholder="Ex: João Silva">
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" name="username" required placeholder="Ex: joao.silva">
+                    </div>
+                    <div class="form-group">
+                        <label>Senha *</label>
+                        <input type="password" name="senha" required minlength="6">
+                        <small style="color: var(--gray); font-size: 12px;">Mínimo 6 caracteres</small>
+                    </div>
+                    <div id="errorConsulta" class="error-message"></div>
+                    <div id="successConsulta" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary">Salvar</button>
+                        <button type="button" class="btn-secondary"
+                            onclick="fecharModal('modalConsulta')">Cancelar</button>
                     </div>
                 </form>
             </div>
