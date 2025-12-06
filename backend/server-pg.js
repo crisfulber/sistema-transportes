@@ -49,6 +49,14 @@ const adminMiddleware = (req, res, next) => {
     next();
 };
 
+// Middleware para admin ou consulta (apenas visualização)
+const adminOrConsultaMiddleware = (req, res, next) => {
+    if (req.user.tipo !== 'admin' && req.user.tipo !== 'consulta') {
+        return res.status(403).json({ error: 'Acesso negado' });
+    }
+    next();
+};
+
 // ============ ROTAS DE AUTENTICAÇÃO ============
 
 app.post('/api/login', async (req, res) => {
@@ -483,7 +491,7 @@ app.post('/api/precos', authMiddleware, adminMiddleware, async (req, res) => {
     }
 });
 
-app.get('/api/dashboard/resumo', authMiddleware, adminMiddleware, async (req, res) => {
+app.get('/api/dashboard/resumo', authMiddleware, adminOrConsultaMiddleware, async (req, res) => {
     try {
         const { mes, ano } = req.query;
         const mesAtual = mes || new Date().getMonth() + 1;
@@ -535,7 +543,7 @@ app.get('/api/dashboard/resumo', authMiddleware, adminMiddleware, async (req, re
     }
 });
 
-app.get('/api/relatorios/conferencia', authMiddleware, adminMiddleware, async (req, res) => {
+app.get('/api/relatorios/conferencia', authMiddleware, adminOrConsultaMiddleware, async (req, res) => {
     try {
         const { mes, ano } = req.query;
         const mesAtual = mes || new Date().getMonth() + 1;

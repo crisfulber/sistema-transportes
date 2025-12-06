@@ -32,7 +32,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         localStorage.setItem('usuario', JSON.stringify(data.usuario));
 
         // Redirecionar baseado no tipo de usuário
-        if (data.usuario.tipo === 'admin') {
+        if (data.usuario.tipo === 'admin' || data.usuario.tipo === 'consulta') {
             window.location.href = 'dashboard.html';
         } else {
             window.location.href = 'motorista.html';

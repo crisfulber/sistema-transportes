@@ -90,10 +90,17 @@ Acesse no navegador: `http://localhost:8080`
 ### Administrador
 - **Username:** admin
 - **Senha:** admin123
+- **Permissões:** Acesso total ao sistema (dashboard, cadastros, relatórios)
+
+### Consulta
+- **Username:** consulta
+- **Senha:** consulta123
+- **Permissões:** Acesso apenas ao dashboard e relatórios (somente leitura)
 
 ### Motoristas
 O sistema vem com 5 motoristas pré-cadastrados para demonstração.
 - **Senha padrão:** 123456
+- **Permissões:** Cadastro de cargas e visualização de suas próprias cargas
 
 ## 📱 Funcionalidades
 

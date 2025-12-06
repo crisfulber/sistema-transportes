@@ -3,8 +3,16 @@ if (!checkAuth()) {
 }
 
 const usuario = getUsuario();
-if (usuario.tipo !== 'admin') {
+if (usuario.tipo !== 'admin' && usuario.tipo !== 'consulta') {
     window.location.href = 'motorista.html';
+}
+
+// Esconder botões de cadastro para usuários de consulta
+if (usuario.tipo === 'consulta') {
+    const cadastrosCard = document.getElementById('cadastrosCard');
+    if (cadastrosCard) {
+        cadastrosCard.style.display = 'none';
+    }
 }
 
 document.getElementById('userName').textContent = usuario.nome;

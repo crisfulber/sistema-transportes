@@ -8,30 +8,30 @@ const { Pool } = pg;
 
 // Conectar ao PostgreSQL
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
 async function initDatabase() {
-    const client = await pool.connect();
+  const client = await pool.connect();
 
-    try {
-        console.log('🔄 Iniciando criação do banco de dados PostgreSQL...');
+  try {
+    console.log('🔄 Iniciando criação do banco de dados PostgreSQL...');
 
-        // Criar tabelas
-        await client.query(`
+    // Criar tabelas
+    await client.query(`
       CREATE TABLE IF NOT EXISTS usuarios (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL,
         username TEXT UNIQUE NOT NULL,
         senha TEXT NOT NULL,
-        tipo TEXT NOT NULL CHECK(tipo IN ('admin', 'motorista')),
+        tipo TEXT NOT NULL CHECK(tipo IN ('admin', 'motorista', 'consulta')),
         ativo INTEGER DEFAULT 1,
         criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS fabricas (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL UNIQUE,
@@ -39,7 +39,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS racoes (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL UNIQUE,
@@ -47,7 +47,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS tipos_produtor (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL UNIQUE,
@@ -55,7 +55,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS produtores (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL,
@@ -66,7 +66,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS tabela_precos (
         id SERIAL PRIMARY KEY,
         tipo_produtor_id INTEGER NOT NULL,
@@ -80,7 +80,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS cargas (
         id SERIAL PRIMARY KEY,
         motorista_id INTEGER NOT NULL,
@@ -92,7 +92,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS itens_carga (
         id SERIAL PRIMARY KEY,
         carga_id INTEGER NOT NULL,
@@ -109,7 +109,7 @@ async function initDatabase() {
       );
     `);
 
-        await client.query(`
+    await client.query(`
       CREATE TABLE IF NOT EXISTS configuracoes (
         id SERIAL PRIMARY KEY,
         chave TEXT NOT NULL UNIQUE,
@@ -118,58 +118,60 @@ async function initDatabase() {
       );
     `);
 
-        // Criar índices
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_cargas_motorista ON cargas(motorista_id);`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_cargas_data ON cargas(data);`);
-        await client.query(`CREATE INDEX IF NOT EXISTS idx_itens_carga ON itens_carga(carga_id);`);
+    // Criar índices
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cargas_motorista ON cargas(motorista_id);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_cargas_data ON cargas(data);`);
+    await client.query(`CREATE INDEX IF NOT EXISTS idx_itens_carga ON itens_carga(carga_id);`);
 
-        console.log('✅ Tabelas criadas com sucesso!');
+    console.log('✅ Tabelas criadas com sucesso!');
 
-        // Verificar se já existem dados
-        const { rows } = await client.query('SELECT COUNT(*) FROM usuarios');
-        if (parseInt(rows[0].count) > 0) {
-            console.log('✅ Banco de dados já possui dados. Pulando inserção inicial.');
-            return;
-        }
+    // Verificar se já existem dados
+    const { rows } = await client.query('SELECT COUNT(*) FROM usuarios');
+    if (parseInt(rows[0].count) > 0) {
+      console.log('✅ Banco de dados já possui dados. Pulando inserção inicial.');
+      return;
+    }
 
-        console.log('📝 Inserindo dados iniciais...');
+    console.log('📝 Inserindo dados iniciais...');
 
-        // Inserir usuários
-        const senhaAdmin = bcrypt.hashSync('admin123', 10);
-        const senhaMotorista = bcrypt.hashSync('123456', 10);
+    // Inserir usuários
+    const senhaAdmin = bcrypt.hashSync('admin123', 10);
+    const senhaMotorista = bcrypt.hashSync('123456', 10);
+    const senhaConsulta = bcrypt.hashSync('consulta123', 10);
 
-        await client.query(`
+    await client.query(`
       INSERT INTO usuarios (nome, username, senha, tipo) VALUES
       ('Administrador', 'admin', $1, 'admin'),
+      ('Consulta', 'consulta', $3, 'consulta'),
       ('Motorista 1', 'motorista1', $2, 'motorista'),
       ('Motorista 2', 'motorista2', $2, 'motorista'),
       ('Motorista 3', 'motorista3', $2, 'motorista'),
       ('Motorista 4', 'motorista4', $2, 'motorista'),
       ('Motorista 5', 'motorista5', $2, 'motorista')
-    `, [senhaAdmin, senhaMotorista]);
+    `, [senhaAdmin, senhaMotorista, senhaConsulta]);
 
-        // Inserir fábricas
-        await client.query(`
+    // Inserir fábricas
+    await client.query(`
       INSERT INTO fabricas (nome) VALUES
       ('Fábrica A'), ('Fábrica B'), ('Fábrica C')
     `);
 
-        // Inserir rações
-        await client.query(`
+    // Inserir rações
+    await client.query(`
       INSERT INTO racoes (nome) VALUES
       ('Ração Tipo 1'), ('Ração Tipo 2'), ('Ração Tipo 3'),
       ('Ração Tipo 4'), ('Ração Tipo 5'), ('Ração Tipo 6'),
       ('Ração Tipo 7'), ('Ração Tipo 8'), ('Ração Tipo 9'), ('Ração Tipo 10')
     `);
 
-        // Inserir tipos de produtor
-        await client.query(`
+    // Inserir tipos de produtor
+    await client.query(`
       INSERT INTO tipos_produtor (nome) VALUES
       ('Tipo A'), ('Tipo B'), ('Tipo C'), ('Tipo D')
     `);
 
-        // Inserir produtores
-        await client.query(`
+    // Inserir produtores
+    await client.query(`
       INSERT INTO produtores (nome, localizacao, tipo_id) VALUES
       ('Produtor 1', 'Localização A', 1),
       ('Produtor 2', 'Localização B', 4),
@@ -177,8 +179,8 @@ async function initDatabase() {
       ('Produtor 4', 'Localização D', 2)
     `);
 
-        // Inserir tabela de preços
-        await client.query(`
+    // Inserir tabela de preços
+    await client.query(`
       INSERT INTO tabela_precos (tipo_produtor_id, valor_por_tonelada, valor_fixo, tonelagem_minima, vigencia_inicio) VALUES
       (1, 10.00, NULL, NULL, '2024-01-01'),
       (2, 10.00, NULL, NULL, '2024-01-01'),
@@ -186,40 +188,43 @@ async function initDatabase() {
       (4, 10.00, 150.00, 17, '2024-01-01')
     `);
 
-        // Inserir configuração de comissão
-        await client.query(`
+    // Inserir configuração de comissão
+    await client.query(`
       INSERT INTO configuracoes (chave, valor, descricao) VALUES
       ('comissao_motorista', '12', 'Percentual de comissão do motorista (%)')
     `);
 
-        console.log('✅ Dados iniciais inseridos com sucesso!');
-        console.log('\n👤 Login Admin:');
-        console.log('   Username: admin');
-        console.log('   Senha: admin123');
-        console.log('\n🚛 Login Motoristas:');
-        console.log('   Username: motorista1, motorista2, etc');
-        console.log('   Senha: 123456\n');
+    console.log('✅ Dados iniciais inseridos com sucesso!');
+    console.log('\n👤 Login Admin:');
+    console.log('   Username: admin');
+    console.log('   Senha: admin123');
+    console.log('\n📊 Login Consulta:');
+    console.log('   Username: consulta');
+    console.log('   Senha: consulta123');
+    console.log('\n🚛 Login Motoristas:');
+    console.log('   Username: motorista1, motorista2, etc');
+    console.log('   Senha: 123456\n');
 
-    } catch (error) {
-        console.error('❌ Erro ao inicializar banco de dados:', error);
-        throw error;
-    } finally {
-        client.release();
-        await pool.end();
-    }
+  } catch (error) {
+    console.error('❌ Erro ao inicializar banco de dados:', error);
+    throw error;
+  } finally {
+    client.release();
+    await pool.end();
+  }
 }
 
 // Executar se for chamado diretamente
 if (import.meta.url === `file://${process.argv[1]}`) {
-    initDatabase()
-        .then(() => {
-            console.log('✅ Inicialização concluída!');
-            process.exit(0);
-        })
-        .catch((error) => {
-            console.error('❌ Falha na inicialização:', error);
-            process.exit(1);
-        });
+  initDatabase()
+    .then(() => {
+      console.log('✅ Inicialização concluída!');
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error('❌ Falha na inicialização:', error);
+      process.exit(1);
+    });
 }
 
 export default initDatabase;
