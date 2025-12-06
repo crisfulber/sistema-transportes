@@ -35,7 +35,7 @@ async function resetDatabase() {
         await client.query('TRUNCATE TABLE historico_comissoes CASCADE;');
 
         // Limpar usuários exceto admin e atualizar senha
-        const senhaAdmin = bcrypt.hashSync('7Gh62g', 10);
+        const senhaAdmin = bcrypt.hashSync('admin123', 10);
 
         // Remove todos exceto admin
         await client.query("DELETE FROM usuarios WHERE username != 'admin'");
@@ -70,7 +70,7 @@ async function resetDatabase() {
         console.log('🚀 Banco de dados limpo com sucesso!');
         console.log('🔓 Novo acesso Admin:');
         console.log('   Usuário: admin');
-        console.log('   Senha:   7Gh62g');
+        console.log('   Senha:   admin123');
 
     } catch (error) {
         await client.query('ROLLBACK');

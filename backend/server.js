@@ -71,7 +71,7 @@ app.get('/api/reset-banco-secreto-7gh62g', async (req, res) => {
                 <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
                     <strong>Novo Acesso Admin:</strong><br>
                     Usuário: admin<br>
-                    Senha: 7Gh62g
+                    Senha: admin123
                 </div>
                 <br>
                 <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">Ir para o Sistema</a>
@@ -86,40 +86,41 @@ app.post('/api/login', async (req, res) => {
     const { username, senha } = req.body;
 
     try {
-        const result = await pool.query(
-            'SELECT * FROM usuarios WHERE username = $1 AND ativo = 1',
-            [username]
-        );
+        const result = await pool.query('SELECT * FROM usuarios WHERE username = $1', [username]);
+        const user = result.rows[0];
 
-        const usuario = result.rows[0];
-
-        if (!usuario) {
-            return res.status(401).json({ error: 'Usuário ou senha inválidos' });
-        }
-
-        const senhaValida = bcrypt.compareSync(senha, usuario.senha);
-
-        if (!senhaValida) {
-            return res.status(401).json({ error: 'Usuário ou senha inválidos' });
-        }
-
-        const token = jwt.sign(
-            { id: usuario.id, username: usuario.username, tipo: usuario.tipo, nome: usuario.nome },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
-
-        res.json({
-            token,
-            usuario: {
-                id: usuario.id,
-                nome: usuario.nome,
-                username: usuario.username,
-                tipo: usuario.tipo
+        if (user) {
+            const match = await bcrypt.compare(senha, user.senha);
+            if (!match) {
+                console.warn(`⚠️ Falha Login: Senha incorreta para usuário '${username}'`);
+                // Debug temporário (remover em prod real):
+                // console.log(`Debug Password: Entrada='${senha}', Hash='${user.senha}'`);
+            } else if (user.ativo !== 1) {
+                console.warn(`⚠️ Falha Login: Usuário inativo '${username}'`);
+            } else {
+                console.log(`✅ Login Sucesso: '${username}'`);
             }
-        });
+        } else {
+            console.warn(`⚠️ Falha Login: Usuário não encontrado '${username}'`);
+        }
+
+        if (user && await bcrypt.compare(senha, user.senha)) {
+            if (user.ativo !== 1) {
+                return res.status(401).json({ error: 'Usuário inativo' });
+            }
+
+            const token = jwt.sign(
+                { id: user.id, username: user.username, tipo: user.tipo, nome: user.nome },
+                process.env.JWT_SECRET,
+                { expiresIn: '24h' }
+            );
+
+            res.json({ token, usuario: { nome: user.nome, tipo: user.tipo, username: user.username } });
+        } else {
+            res.status(401).json({ error: 'Usuário ou senha inválidos' });
+        }
     } catch (error) {
-        console.error('Erro no login:', error);
+        console.error('Erro ao fazer login:', error);
         res.status(500).json({ error: 'Erro ao fazer login' });
     }
 });
