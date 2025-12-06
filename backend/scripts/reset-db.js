@@ -17,24 +17,41 @@ const pool = new Pool({
 
 async function resetDatabase() {
     const client = await pool.connect();
+    const logs = [];
+    const log = (msg) => {
+        console.log(msg);
+        logs.push(msg);
+    };
 
     try {
-        console.log('⚠️  ATENÇÃO: Este script apagará TODOS os dados do banco, exceto o admin.');
-        console.log('⏳ Iniciando limpeza...');
+        log('⚠️  ATENÇÃO: Iniciando limpeza...');
 
         await client.query('BEGIN');
 
         // Limpar tabelas mantendo a estrutura
-        // A ordem importa por causa das chaves estrangeiras
+        log('🧹 Limpando itens_carga...');
         await client.query('TRUNCATE TABLE itens_carga CASCADE;');
+
+        log('🧹 Limpando cargas...');
         await client.query('TRUNCATE TABLE cargas CASCADE;');
+
+        log('🧹 Limpando tabela_precos...');
         await client.query('TRUNCATE TABLE tabela_precos CASCADE;');
+
+        log('🧹 Limpando produtores...');
         await client.query('TRUNCATE TABLE produtores CASCADE;');
+
+        log('🧹 Limpando fabricas...');
         await client.query('TRUNCATE TABLE fabricas CASCADE;');
+
+        log('🧹 Limpando racoes...');
         await client.query('TRUNCATE TABLE racoes CASCADE;');
+
+        log('🧹 Limpando historico_comissoes...');
         await client.query('TRUNCATE TABLE historico_comissoes CASCADE;');
 
         // Limpar usuários exceto admin e atualizar senha
+        log('👤 Resetando usuários...');
         const senhaAdmin = bcrypt.hashSync('admin123', 10);
 
         // Remove todos exceto admin
@@ -48,33 +65,36 @@ async function resetDatabase() {
                 SET senha = $1, nome = 'Administrador', tipo = 'admin', ativo = 1 
                 WHERE username = 'admin'
             `, [senhaAdmin]);
-            console.log('✅ Usuário admin atualizado.');
+            log('✅ Usuário admin atualizado.');
         } else {
             await client.query(`
                 INSERT INTO usuarios (nome, username, senha, tipo, ativo)
                 VALUES ('Administrador', 'admin', $1, 'admin', 1)
             `, [senhaAdmin]);
-            console.log('✅ Usuário admin criado.');
+            log('✅ Usuário admin criado.');
         }
 
         // Reinicializar configurações básicas de comissão
+        log('⚙️ Resetando configurações...');
         await client.query("DELETE FROM configuracoes WHERE chave = 'comissao_motorista'");
         await client.query("INSERT INTO configuracoes (chave, valor) VALUES ('comissao_motorista', '12')");
         await client.query(`
             INSERT INTO historico_comissoes (valor_percentual, vigencia_inicio)
             VALUES (12, CURRENT_DATE)
         `);
-        console.log('✅ Configuração inicial de comissão restaurada (12%).');
+        log('✅ Configuração inicial restaurada.');
 
         await client.query('COMMIT');
-        console.log('🚀 Banco de dados limpo com sucesso!');
-        console.log('🔓 Novo acesso Admin:');
-        console.log('   Usuário: admin');
-        console.log('   Senha:   admin123');
+        log('🚀 Banco de dados limpo com sucesso!');
+        log('🔓 Novo acesso Admin: admin / admin123');
+
+        return logs;
 
     } catch (error) {
         await client.query('ROLLBACK');
+        log('❌ Erro ao limpar banco: ' + error.message);
         console.error('❌ Erro ao limpar banco:', error);
+        throw error; // Propaga erro
     } finally {
         client.release();
         // Não fechar o pool se for chamado via módulo, apenas se for script standalone

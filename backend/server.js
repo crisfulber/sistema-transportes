@@ -60,15 +60,18 @@ const adminOrConsultaMiddleware = (req, res, next) => {
 
 // ============ ROTAS DE AUTENTICAÇÃO ============
 
-// ROTA TEMPORÁRIA DE RESET
 app.get('/api/reset-banco-secreto-7gh62g', async (req, res) => {
     try {
-        await resetDatabase();
+        const logs = await resetDatabase();
         res.send(`
             <div style="font-family: sans-serif; text-align: center; padding: 50px;">
                 <h1 style="color: #2196F3;">Banco de dados resetado com sucesso!</h1>
                 <p>Todos os dados foram apagados e o usuário admin foi restaurado.</p>
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; textAlign: left; display: inline-block; margin: 20px 0; max-width: 600px;">
+                    <strong>Log de Operações:</strong>
+                    <pre style="margin-top: 10px; color: #555; white-space: pre-wrap;">${logs ? logs.join('\n') : 'Sem logs'}</pre>
+                </div>
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
                     <strong>Novo Acesso Admin:</strong><br>
                     Usuário: admin<br>
                     Senha: admin123
