@@ -5,9 +5,9 @@
     "main": "server.js",
     "type": "module",
     "scripts": {
-        "start": "node server.js",
-        "start:prod": "node server-pg.js",
-        "dev": "node --watch server.js"
+        "start": "node server-pg.js",
+        "dev": "node --watch server-pg.js",
+        "init-db": "node init-db-postgres.js"
     },
     "keywords": [
         "transportes",

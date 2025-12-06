@@ -11,18 +11,20 @@ Sistema web completo para gerenciar cargas de transporte de ração de suínos, 
 
 ### Backend
 - **Node.js** com **Express** - Framework web leve e rápido
-- **SQLite** com **better-sqlite3** - Banco de dados embutido, sem necessidade de servidor
+- **PostgreSQL** - Banco de dados relacional robusto e escalável
 - **JWT** - Autenticação segura
 - **bcryptjs** - Criptografia de senhas
 
 ### Frontend
 - **HTML5, CSS3, JavaScript** puro - Sem frameworks pesados, fácil manutenção
 - Design moderno com gradientes e animações
-- Totalmente responsivo
+- Totalmente responsivo (desktop e mobile)
 
 ## 📋 Pré-requisitos
 
-Você precisa ter o **Node.js** (versão 18 ou superior) instalado no seu computador.
+Você precisa ter instalado:
+- **Node.js** (versão 18 ou superior)
+- **PostgreSQL** (versão 12 ou superior)
 
 ### Instalando o Node.js no macOS
 
@@ -51,22 +53,45 @@ git clone https://github.com/crisfulber/sistema-transportes.git
 cd sistema-transportes
 ```
 
-### 2. Configure as variáveis de ambiente
+### 2. Instale e configure o PostgreSQL
+
+Veja o guia completo em [POSTGRES_SETUP.md](POSTGRES_SETUP.md)
+
+Resumo rápido:
+
+```bash
+# Instalar PostgreSQL (macOS)
+brew install postgresql@15
+brew services start postgresql@15
+
+# Criar banco de dados
+createdb sistema_transportes
+```
+
+### 3. Configure as variáveis de ambiente
 
 ```bash
 cd backend
 cp .env.example .env
 ```
 
-Edite o arquivo `.env` e altere o `JWT_SECRET` para uma chave segura.
+Edite o arquivo `.env`:
 
-### 3. Instale as dependências
+```env
+PORT=3000
+JWT_SECRET=sua_chave_secreta_super_segura_aqui
+DATABASE_URL=postgresql://postgres@localhost:5432/sistema_transportes
+NODE_ENV=development
+```
+
+### 4. Instale as dependências e inicialize o banco
 
 ```bash
 npm install
+npm run init-db
 ```
 
-### 4. Inicie o servidor backend
+### 5. Inicie o servidor backend
 
 ```bash
 npm start
@@ -74,7 +99,7 @@ npm start
 
 O servidor estará rodando em `http://localhost:3000`
 
-### 5. Abra o frontend
+### 6. Abra o frontend
 
 Em outro terminal:
 
