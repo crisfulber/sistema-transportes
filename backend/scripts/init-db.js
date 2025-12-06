@@ -81,6 +81,16 @@ async function initDatabase() {
     `);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS historico_comissoes (
+        id SERIAL PRIMARY KEY,
+        valor_percentual REAL NOT NULL,
+        vigencia_inicio DATE NOT NULL,
+        vigencia_fim DATE,
+        criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS cargas (
         id SERIAL PRIMARY KEY,
         motorista_id INTEGER NOT NULL,

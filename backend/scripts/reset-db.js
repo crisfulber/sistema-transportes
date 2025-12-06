@@ -28,6 +28,18 @@ async function resetDatabase() {
 
         await client.query('BEGIN');
 
+        // Garantir que a tabela historico_comissoes existe para não falhar o truncate
+        await client.query(`
+            CREATE TABLE IF NOT EXISTS historico_comissoes (
+                id SERIAL PRIMARY KEY,
+                valor_percentual REAL NOT NULL,
+                vigencia_inicio DATE NOT NULL,
+                vigencia_fim DATE,
+                criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
+        log('✅ Estrutura de comissões verificada.');
+
         // Limpar tabelas mantendo a estrutura
         log('🧹 Limpando itens_carga...');
         await client.query('TRUNCATE TABLE itens_carga CASCADE;');
