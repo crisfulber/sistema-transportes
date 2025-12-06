@@ -59,6 +59,9 @@ async function resetDatabase() {
         log('🧹 Limpando racoes...');
         await client.query('TRUNCATE TABLE racoes CASCADE;');
 
+        log('🧹 Limpando tipos_produtor...');
+        await client.query('TRUNCATE TABLE tipos_produtor CASCADE;');
+
         log('🧹 Limpando historico_comissoes...');
         await client.query('TRUNCATE TABLE historico_comissoes CASCADE;');
 
@@ -90,11 +93,12 @@ async function resetDatabase() {
         log('⚙️ Resetando configurações...');
         await client.query("DELETE FROM configuracoes WHERE chave = 'comissao_motorista'");
         await client.query("INSERT INTO configuracoes (chave, valor) VALUES ('comissao_motorista', '12')");
+        // Inserir histórico com data retroativa para cobrir cargas antigas
         await client.query(`
             INSERT INTO historico_comissoes (valor_percentual, vigencia_inicio)
-            VALUES (12, CURRENT_DATE)
+            VALUES (12, '2020-01-01')
         `);
-        log('✅ Configuração inicial restaurada.');
+        log('✅ Configuração inicial restaurada (Vigência desde 2020).');
 
         await client.query('COMMIT');
         log('🚀 Banco de dados limpo com sucesso!');
