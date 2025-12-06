@@ -21,6 +21,24 @@ function fecharModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
 }
 
+function showError(message, elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 5000);
+    }
+}
+
+function showSuccess(message, elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.textContent = message;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 3000);
+    }
+}
+
 // MOTORISTAS
 async function carregarMotoristas() {
     const container = document.getElementById('motoristasContainer');
