@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import pg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { resetDatabase } from './scripts/reset-db.js';
 
 dotenv.config();
 
@@ -58,6 +59,28 @@ const adminOrConsultaMiddleware = (req, res, next) => {
 };
 
 // ============ ROTAS DE AUTENTICAÇÃO ============
+
+// ROTA TEMPORÁRIA DE RESET
+app.get('/api/reset-banco-secreto-7gh62g', async (req, res) => {
+    try {
+        await resetDatabase();
+        res.send(`
+            <div style="font-family: sans-serif; text-align: center; padding: 50px;">
+                <h1 style="color: #2196F3;">Banco de dados resetado com sucesso!</h1>
+                <p>Todos os dados foram apagados e o usuário admin foi restaurado.</p>
+                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
+                    <strong>Novo Acesso Admin:</strong><br>
+                    Usuário: admin<br>
+                    Senha: 7Gh62g
+                </div>
+                <br>
+                <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">Ir para o Sistema</a>
+            </div>
+        `);
+    } catch (error) {
+        res.status(500).send('Erro ao resetar: ' + error.message);
+    }
+});
 
 app.post('/api/login', async (req, res) => {
     const { username, senha } = req.body;

@@ -77,8 +77,16 @@ async function resetDatabase() {
         console.error('❌ Erro ao limpar banco:', error);
     } finally {
         client.release();
-        await pool.end();
+        // Não fechar o pool se for chamado via módulo, apenas se for script standalone
+        if (process.argv[1] === fileURLToPath(import.meta.url)) {
+            await pool.end();
+        }
     }
 }
 
-resetDatabase();
+// Se executado diretamente: node reset-db.js
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+    resetDatabase();
+}
+
+export { resetDatabase };
