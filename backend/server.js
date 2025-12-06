@@ -7,7 +7,7 @@ import jwt from 'jsonwebtoken';
 import pg from 'pg';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { resetDatabase } from './scripts/reset-db.js';
+
 
 dotenv.config();
 
@@ -60,28 +60,20 @@ const adminOrConsultaMiddleware = (req, res, next) => {
 
 // ============ ROTAS DE AUTENTICAÇÃO ============
 
-app.get('/api/reset-banco-secreto-7gh62g', async (req, res) => {
+app.put('/api/minha-senha', authMiddleware, async (req, res) => {
     try {
-        const logs = await resetDatabase();
-        res.send(`
-            <div style="font-family: sans-serif; text-align: center; padding: 50px;">
-                <h1 style="color: #2196F3;">Banco de dados resetado com sucesso!</h1>
-                <p>Todos os dados foram apagados e o usuário admin foi restaurado.</p>
-                <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; textAlign: left; display: inline-block; margin: 20px 0; max-width: 600px;">
-                    <strong>Log de Operações:</strong>
-                    <pre style="margin-top: 10px; color: #555; white-space: pre-wrap;">${logs ? logs.join('\n') : 'Sem logs'}</pre>
-                </div>
-                <div style="background: #e3f2fd; padding: 20px; border-radius: 8px; display: inline-block; margin: 20px 0;">
-                    <strong>Novo Acesso Admin:</strong><br>
-                    Usuário: admin<br>
-                    Senha: admin123
-                </div>
-                <br>
-                <a href="/" style="display: inline-block; margin-top: 20px; padding: 10px 20px; background: #2196F3; color: white; text-decoration: none; border-radius: 4px;">Ir para o Sistema</a>
-            </div>
-        `);
+        const { novaSenha } = req.body;
+        if (!novaSenha || novaSenha.length < 6) {
+            return res.status(400).json({ error: 'Senha deve ter no mínimo 6 caracteres' });
+        }
+
+        const senhaHash = bcrypt.hashSync(novaSenha, 10);
+        await pool.query('UPDATE usuarios SET senha = $1 WHERE id = $2', [senhaHash, req.user.id]);
+
+        res.json({ message: 'Senha alterada com sucesso' });
     } catch (error) {
-        res.status(500).send('Erro ao resetar: ' + error.message);
+        console.error('Erro ao alterar senha:', error);
+        res.status(500).json({ error: 'Erro ao alterar senha' });
     }
 });
 

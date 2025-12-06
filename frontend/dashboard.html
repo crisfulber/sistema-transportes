@@ -25,7 +25,11 @@
                     <div class="user-name" id="userName"></div>
                     <div class="user-role">Administrador</div>
                 </div>
-                <button class="btn-logout" onclick="logout()">Sair</button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-secondary" onclick="abrirModalSenha()"
+                        style="padding: 8px 16px; font-size: 14px;">Senha</button>
+                    <button class="btn-logout" onclick="logout()">Sair</button>
+                </div>
             </div>
         </nav>
 
@@ -195,8 +199,33 @@
     </div>
     </div>
 
+
+    <!-- Modal Alterar Senha -->
+    <div id="modalSenha" class="modal">
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="modal-header">
+                <h2 class="modal-title">Alterar Senha</h2>
+                <button class="btn-close" onclick="fecharModal('modalSenha')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formSenha">
+                    <div class="form-group">
+                        <label>Nova Senha</label>
+                        <input type="password" id="novaSenha" required minlength="6" placeholder="Mínimo 6 caracteres">
+                    </div>
+                    <div id="errorSenha" class="error-message"></div>
+                    <div id="successSenha" class="success-message"></div>
+                    <div style="display: flex; gap: 12px; margin-top: 24px;">
+                        <button type="submit" class="btn-primary" style="width: 100%;">Salvar Nova Senha</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="utils.js"></script>
     <script src="dashboard.js"></script>
+    <script src="dashboard-senha.js"></script>
 </body>
 
 </html>
