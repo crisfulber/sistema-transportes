@@ -671,6 +671,7 @@ tr:hover {
         padding: 16px;
         overflow-x: hidden;
         max-width: 100vw;
+        border-radius: 10px;
     }
 
     .container {
@@ -687,6 +688,7 @@ tr:hover {
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
+        border-radius: 10px;
     }
 
     .navbar-brand {
@@ -801,7 +803,7 @@ tr:hover {
     }
 
     /* Força botões de ação a ocuparem largura total no mobile */
-    .card-header .btn-add {
+    .card-header {
         width: 100%;
         justify-content: center;
     }
