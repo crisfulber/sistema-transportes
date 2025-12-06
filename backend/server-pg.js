@@ -113,7 +113,13 @@ app.get('/api/cargas', authMiddleware, async (req, res) => {
         COUNT(ic.id) as total_itens,
         SUM(ic.quantidade_kg) as total_kg,
         SUM(ic.valor_calculado) as valor_total,
-        (SELECT valor FROM configuracoes WHERE chave = 'comissao_motorista') as percentual_comissao
+        COALESCE(
+          (SELECT valor_percentual FROM historico_comissoes 
+           WHERE vigencia_inicio <= c.data 
+           AND (vigencia_fim >= c.data OR vigencia_fim IS NULL) 
+           ORDER BY vigencia_inicio DESC LIMIT 1), 
+          (SELECT valor::real FROM configuracoes WHERE chave = 'comissao_motorista')
+        ) as percentual_comissao
       FROM cargas c
       LEFT JOIN usuarios u ON c.motorista_id = u.id
       LEFT JOIN itens_carga ic ON c.id = ic.carga_id
@@ -628,8 +634,20 @@ app.get('/api/relatorios/conferencia', authMiddleware, adminOrConsultaMiddleware
 
 app.get('/api/configuracoes/comissao', authMiddleware, async (req, res) => {
     try {
-        const result = await pool.query("SELECT valor FROM configuracoes WHERE chave = 'comissao_motorista'");
-        res.json({ valor: parseFloat(result.rows[0]?.valor || 12) });
+        // Busca histórico completo
+        const result = await pool.query(`
+            SELECT id, valor_percentual as valor, vigencia_inicio, vigencia_fim 
+            FROM historico_comissoes 
+            ORDER BY vigencia_inicio DESC
+        `);
+
+        // Busca valor atual (registro sem data fim ou o último)
+        const atual = result.rows.find(r => !r.vigencia_fim) || result.rows[0];
+
+        res.json({
+            valor: parseFloat(atual?.valor || 12),
+            historico: result.rows
+        });
     } catch (error) {
         console.error('Erro ao buscar comissão:', error);
         res.status(500).json({ error: 'Erro ao buscar comissão' });
@@ -637,17 +655,67 @@ app.get('/api/configuracoes/comissao', authMiddleware, async (req, res) => {
 });
 
 app.post('/api/configuracoes/comissao', authMiddleware, adminMiddleware, async (req, res) => {
+    const client = await pool.connect();
     try {
-        const { valor } = req.body;
-        if (valor === undefined) {
-            return res.status(400).json({ error: 'Valor é obrigatório' });
+        await client.query('BEGIN');
+
+        const { valor, data_inicio } = req.body;
+        if (valor === undefined || !data_inicio) {
+            return res.status(400).json({ error: 'Valor e data de início são obrigatórios' });
         }
 
-        await pool.query("UPDATE configuracoes SET valor = $1 WHERE chave = 'comissao_motorista'", [valor.toString()]);
-        res.json({ message: 'Comissão atualizada com sucesso' });
+        const novaVigencia = new Date(data_inicio);
+
+        // 1. Fechar vigência atual (registros que estão abertos ou que conflitam)
+        // Busca o último registro aberto
+        const ultimoResult = await client.query(`
+            SELECT id, vigencia_inicio FROM historico_comissoes 
+            WHERE vigencia_fim IS NULL 
+            ORDER BY vigencia_inicio DESC LIMIT 1
+        `);
+
+        if (ultimoResult.rows.length > 0) {
+            const ultimo = ultimoResult.rows[0];
+            const dataFimAnterior = new Date(novaVigencia);
+            dataFimAnterior.setDate(dataFimAnterior.getDate() - 1); // Dia anterior à nova vigência
+
+            if (new Date(ultimo.vigencia_inicio) >= novaVigencia) {
+                // Se tenta inserir data anterior ao início do último, erro (simplificação para evitar complexidade)
+                // Idealmente permitiria inserção retroativa, mas vamos manter simples: só nova vigência futura
+                // Mas o usuário pode querer corrigir. Vamos permitir se for igual.
+                if (new Date(ultimo.vigencia_inicio).toISOString().split('T')[0] === novaVigencia.toISOString().split('T')[0]) {
+                    // Atualiza valor do atual
+                    await client.query(`UPDATE historico_comissoes SET valor_percentual = $1 WHERE id = $2`, [valor, ultimo.id]);
+                    await client.query('COMMIT');
+                    return res.json({ message: 'Comissão atualizada com sucesso' });
+                }
+            }
+
+            // Fecha o anterior
+            await client.query(`
+                UPDATE historico_comissoes 
+                SET vigencia_fim = $1 
+                WHERE id = $2
+            `, [dataFimAnterior, ultimo.id]);
+        }
+
+        // 2. Inserir novo registro
+        await client.query(`
+            INSERT INTO historico_comissoes (valor_percentual, vigencia_inicio)
+            VALUES ($1, $2)
+        `, [valor, data_inicio]);
+
+        // Manter retrocompatibilidade atualizando também na configuracoes (fallback)
+        await client.query("UPDATE configuracoes SET valor = $1 WHERE chave = 'comissao_motorista'", [valor.toString()]);
+
+        await client.query('COMMIT');
+        res.json({ message: 'Nova vigência de comissão criada com sucesso' });
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Erro ao atualizar comissão:', error);
         res.status(500).json({ error: 'Erro ao atualizar comissão' });
+    } finally {
+        client.release();
     }
 });
 

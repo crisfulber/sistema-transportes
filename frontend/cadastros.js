@@ -419,7 +419,48 @@ document.getElementById('formPreco').addEventListener('submit', async (e) => {
 async function carregarConfiguracoes() {
     try {
         const config = await apiRequest('/configuracoes/comissao');
-        document.getElementById('comissaoMotorista').value = config.valor;
+
+        // Configura data padrão como hoje
+        document.getElementById('dataInicioComissao').valueAsDate = new Date();
+
+        // Preencher Histórico
+        const tbody = document.getElementById('historicoComissoesBody');
+        if (config.historico && config.historico.length > 0) {
+            tbody.innerHTML = config.historico.map(h => {
+                // Ajuste de data devido ao timezone
+                const dataInicioParts = h.vigencia_inicio.split('T')[0].split('-');
+                const dataInicio = `${dataInicioParts[2]}/${dataInicioParts[1]}/${dataInicioParts[0]}`;
+
+                let dataFim = 'Atual';
+                let statusClass = 'badge-success';
+                let statusTexto = 'VIGENTE';
+
+                if (h.vigencia_fim) {
+                    const dataFimParts = h.vigencia_fim.split('T')[0].split('-');
+                    dataFim = `${dataFimParts[2]}/${dataFimParts[1]}/${dataFimParts[0]}`;
+                    statusClass = 'badge-warning'; // ou style cinza
+                    statusTexto = 'ENCERRADO';
+                }
+
+                return `
+                    <tr>
+                        <td style="padding: 12px; border-bottom: 1px solid var(--gray-lighter);">
+                            <div style="font-weight: 500; font-size: 14px;">Início: ${dataInicio}</div>
+                            <div style="font-size: 12px; color: var(--gray);">Fim: ${dataFim}</div>
+                        </td>
+                        <td style="padding: 12px; text-align: right; border-bottom: 1px solid var(--gray-lighter); font-weight: 600;">
+                            ${h.valor}%
+                        </td>
+                        <td style="padding: 12px; text-align: center; border-bottom: 1px solid var(--gray-lighter);">
+                            <span class="badge ${statusClass}" style="font-size: 10px;">${statusTexto}</span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        } else {
+            tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; padding: 20px; color: var(--gray);">Nenhum histórico encontrado</td></tr>';
+        }
+
     } catch (error) {
         showError('Erro ao carregar configurações: ' + error.message, 'errorConfig');
     }
@@ -428,13 +469,16 @@ async function carregarConfiguracoes() {
 document.getElementById('formConfiguracoes').addEventListener('submit', async (e) => {
     e.preventDefault();
     const valor = parseFloat(document.getElementById('comissaoMotorista').value);
+    const dataInicio = document.getElementById('dataInicioComissao').value;
 
     try {
         await apiRequest('/configuracoes/comissao', {
             method: 'POST',
-            body: JSON.stringify({ valor })
+            body: JSON.stringify({ valor, data_inicio: dataInicio })
         });
-        showSuccess('Configurações salvas com sucesso!', 'successConfig');
+        showSuccess('Nova vigência configurada com sucesso!', 'successConfig');
+        document.getElementById('formConfiguracoes').reset();
+        setTimeout(() => carregarConfiguracoes(), 1000);
     } catch (error) {
         showError(error.message, 'errorConfig');
     }
