@@ -11,6 +11,8 @@ import { fileURLToPath } from 'url';
 
 dotenv.config();
 
+import { resetDatabase } from './scripts/reset-db.js';
+
 const { Pool } = pg;
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
@@ -945,6 +947,18 @@ app.post('/api/configuracoes/comissao', authMiddleware, adminMiddleware, async (
         res.status(500).json({ error: 'Erro ao atualizar comissão' });
     } finally {
         client.release();
+    }
+});
+
+// ============ ROTA DE MANUTENÇÃO (RENDER) ============
+app.post('/api/admin/reset-database', authMiddleware, adminMiddleware, async (req, res) => {
+    try {
+        console.log(`⚠️ Solicitação de RESET DB por ${req.user.username}`);
+        const logs = await resetDatabase();
+        res.json({ message: 'Banco de dados resetado com sucesso!', logs });
+    } catch (error) {
+        console.error('Erro ao resetar banco via API:', error);
+        res.status(500).json({ error: 'Falha crítica ao resetar banco: ' + error.message });
     }
 });
 
