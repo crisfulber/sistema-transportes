@@ -328,7 +328,7 @@ async function verDetalhes(id) {
         const carga = await apiRequest(`/cargas/${id}`);
 
         const totalKg = carga.itens.reduce((sum, i) => sum + parseFloat(i.quantidade_kg), 0);
-        const valorTotal = carga.itens.reduce((sum, i) => sum + parseFloat(i.valor_calculado), 0);
+        const valorComissaoTotal = carga.itens.reduce((sum, i) => sum + (parseFloat(i.valor_calculado) * (carga.percentual_comissao / 100)), 0);
 
         content.innerHTML = `
             <div style="margin-bottom: 24px;">
@@ -363,7 +363,7 @@ async function verDetalhes(id) {
                             <th>Produtor</th>
                             <th>Nota Fiscal</th>
                             <th>Quantidade</th>
-                            <th>Valor</th>
+                            <th>Sua Comissão (${carga.percentual_comissao}%)</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -378,7 +378,7 @@ async function verDetalhes(id) {
                                 </td>
                                 <td>${item.nota_fiscal}</td>
                                 <td>${formatNumber(item.quantidade_kg / 1000, 2)} ton</td>
-                                <td><strong>${formatCurrency(item.valor_calculado)}</strong></td>
+                                <td><strong>${formatCurrency(item.valor_calculado * (carga.percentual_comissao / 100))}</strong></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -386,7 +386,7 @@ async function verDetalhes(id) {
                         <tr>
                             <td colspan="4" style="text-align: right;">TOTAL:</td>
                             <td>${formatNumber(totalKg / 1000, 2)} ton</td>
-                            <td><strong style="color: var(--primary); font-size: 16px;">${formatCurrency(valorTotal)}</strong></td>
+                            <td><strong style="color: var(--primary); font-size: 16px;">${formatCurrency(valorComissaoTotal)}</strong></td>
                         </tr>
                     </tfoot>
                 </table>

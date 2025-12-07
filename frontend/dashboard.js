@@ -126,6 +126,7 @@ async function abrirRelatorioConferencia() {
                             <th>Motorista</th>
                             <th>Quantidade (kg)</th>
                             <th>Valor Frete</th>
+                            <th>Ações</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -137,6 +138,7 @@ async function abrirRelatorioConferencia() {
                                 <td>${d.motorista_nome}</td>
                                 <td>${formatNumber(d.quantidade_kg, 2)}</td>
                                 <td>${formatCurrency(d.valor_calculado)}</td>
+                                <td><button class="btn-sm btn-view" onclick="editarCarga(${d.carga_id})">Editar</button></td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -165,3 +167,170 @@ async function abrirRelatorioConferencia() {
 function fecharModalRelatorio() {
     document.getElementById('modalRelatorio').classList.remove('show');
 }
+
+// LOGICA DE EDIÇÃO DE CARGA
+let editCache = {
+    fabricas: [],
+    racoes: [],
+    produtores: [],
+    motoristas: []
+};
+let editItemIndex = 0;
+
+async function carregarDadosEdicao() {
+    try {
+        if (editCache.fabricas.length === 0) {
+            const [f, r, p, m] = await Promise.all([
+                apiRequest('/fabricas'),
+                apiRequest('/racoes'),
+                apiRequest('/produtores'),
+                apiRequest('/motoristas')
+            ]);
+            editCache.fabricas = f;
+            editCache.racoes = r;
+            editCache.produtores = p;
+            editCache.motoristas = m;
+        }
+
+        // Popular select de motorista
+        const selectMotorista = document.getElementById('editMotoristaId');
+        selectMotorista.innerHTML = editCache.motoristas.map(m =>
+            `<option value="${m.id}">${m.nome}</option>`
+        ).join('');
+
+    } catch (error) {
+        console.error('Erro ao carregar dados auxiliares:', error);
+        alert('Erro ao carregar dados para edição');
+    }
+}
+
+function fecharModalEditarCarga() {
+    document.getElementById('modalEditarCarga').classList.remove('show');
+}
+
+function getOptions(lista, selecionado) {
+    return lista.map(item =>
+        `<option value="${item.id}" ${item.id == selecionado ? 'selected' : ''}>${item.nome}${item.localizacao ? ' (' + item.localizacao + ')' : ''}</option>`
+    ).join('');
+}
+
+function adicionarItemEdicao(item = null) {
+    const container = document.getElementById('editItensContainer');
+    const div = document.createElement('div');
+    div.className = 'item-edicao';
+    div.style.borderTop = '1px solid #ddd';
+    div.style.paddingTop = '15px';
+    div.style.marginTop = '15px';
+    div.dataset.index = editItemIndex;
+
+    div.innerHTML = `
+        <div style="text-align: right; margin-bottom: 5px;">
+            <button type="button" class="btn-danger btn-sm" onclick="this.parentElement.parentElement.remove()">Remover</button>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Fábrica</label>
+                <select name="fabrica_id" required>
+                    ${getOptions(editCache.fabricas, item ? item.fabrica_id : null)}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Ração</label>
+                <select name="racao_id" required>
+                    ${getOptions(editCache.racoes, item ? item.racao_id : null)}
+                </select>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Produtor</label>
+                <select name="produtor_id" required>
+                    ${getOptions(editCache.produtores, item ? item.produtor_id : null)}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Nota Fiscal</label>
+                <input type="text" name="nota_fiscal" value="${item ? item.nota_fiscal : ''}" required>
+            </div>
+            <div class="form-group">
+                <label>Quantidade (kg)</label>
+                <input type="number" name="quantidade_kg" step="0.01" value="${item ? item.quantidade_kg : ''}" required>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(div);
+    editItemIndex++;
+}
+
+async function editarCarga(id) {
+    const modal = document.getElementById('modalEditarCarga');
+    document.getElementById('editItensContainer').innerHTML = '<p>Carregando...</p>';
+    modal.classList.add('show');
+
+    try {
+        await carregarDadosEdicao();
+
+        const carga = await apiRequest(`/cargas/${id}`);
+
+        document.getElementById('editCargaId').value = carga.id;
+        document.getElementById('editData').value = carga.data.split('T')[0];
+        document.getElementById('editMotoristaId').value = carga.motorista_id;
+        document.getElementById('editKmInicial').value = carga.km_inicial;
+        document.getElementById('editKmFinal').value = carga.km_final || '';
+
+        const container = document.getElementById('editItensContainer');
+        container.innerHTML = '';
+        editItemIndex = 0;
+
+        carga.itens.forEach(item => {
+            adicionarItemEdicao(item);
+        });
+
+    } catch (error) {
+        alert('Erro ao carregar carga: ' + error.message);
+        fecharModalEditarCarga();
+    }
+}
+
+document.getElementById('formEditarCarga').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editCargaId').value;
+    const cargaData = {
+        data: document.getElementById('editData').value,
+        motorista_id: document.getElementById('editMotoristaId').value,
+        km_inicial: parseFloat(document.getElementById('editKmInicial').value),
+        km_final: document.getElementById('editKmFinal').value ? parseFloat(document.getElementById('editKmFinal').value) : null,
+        itens: []
+    };
+
+    document.querySelectorAll('#editItensContainer .item-edicao').forEach(div => {
+        cargaData.itens.push({
+            fabrica_id: parseInt(div.querySelector('select[name="fabrica_id"]').value),
+            racao_id: parseInt(div.querySelector('select[name="racao_id"]').value),
+            produtor_id: parseInt(div.querySelector('select[name="produtor_id"]').value),
+            nota_fiscal: div.querySelector('input[name="nota_fiscal"]').value,
+            quantidade_kg: parseFloat(div.querySelector('input[name="quantidade_kg"]').value)
+        });
+    });
+
+    if (cargaData.itens.length === 0) {
+        alert('Adicione pelo menos um item');
+        return;
+    }
+
+    try {
+        await apiRequest(`/cargas/${id}`, {
+            method: 'PUT',
+            body: JSON.stringify(cargaData)
+        });
+        alert('Carga atualizada com sucesso!');
+        fecharModalEditarCarga();
+        fecharModalRelatorio();
+        // Recarregar relatório se estiver aberto, mas acabei de fechar.
+        // Recarregar dados do dashboard
+        carregarDados();
+    } catch (error) {
+        alert('Erro ao salvar: ' + error.message);
+    }
+});

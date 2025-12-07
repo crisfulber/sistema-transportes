@@ -296,29 +296,80 @@ app.post('/api/cargas', authMiddleware, async (req, res) => {
 });
 
 app.put('/api/cargas/:id', authMiddleware, async (req, res) => {
+    const client = await pool.connect();
     try {
-        const { km_final } = req.body;
         const cargaId = req.params.id;
+        const { km_final, data, km_inicial, itens, motorista_id } = req.body;
 
-        const cargaResult = await pool.query('SELECT * FROM cargas WHERE id = $1', [cargaId]);
+        const cargaResult = await client.query('SELECT * FROM cargas WHERE id = $1', [cargaId]);
         const carga = cargaResult.rows[0];
 
         if (!carga) {
+            client.release();
             return res.status(404).json({ error: 'Carga não encontrada' });
         }
 
-        if (req.user.tipo === 'motorista' && carga.motorista_id !== req.user.id) {
-            return res.status(403).json({ error: 'Acesso negado' });
-        }
+        if (req.user.tipo === 'motorista') {
+            if (carga.motorista_id !== req.user.id) {
+                client.release();
+                return res.status(403).json({ error: 'Acesso negado' });
+            }
+            if (km_final !== undefined) {
+                await client.query('UPDATE cargas SET km_final = $1 WHERE id = $2', [km_final, cargaId]);
+            }
+        } else if (req.user.tipo === 'admin') {
+            await client.query('BEGIN');
 
-        if (km_final !== undefined) {
-            await pool.query('UPDATE cargas SET km_final = $1 WHERE id = $2', [km_final, cargaId]);
+            let updateQuery = 'UPDATE cargas SET ';
+            const params = [];
+            let paramCount = 1;
+
+            if (data) { updateQuery += `data = $${paramCount++}, `; params.push(data); }
+            if (km_inicial) { updateQuery += `km_inicial = $${paramCount++}, `; params.push(km_inicial); }
+            if (km_final !== undefined) { updateQuery += `km_final = $${paramCount++}, `; params.push(km_final); }
+            if (motorista_id) { updateQuery += `motorista_id = $${paramCount++}, `; params.push(motorista_id); }
+
+            if (params.length > 0) {
+                updateQuery = updateQuery.slice(0, -2) + ` WHERE id = $${paramCount}`;
+                params.push(cargaId);
+                await client.query(updateQuery, params);
+            }
+
+            if (itens && Array.isArray(itens)) {
+                await client.query('DELETE FROM itens_carga WHERE carga_id = $1', [cargaId]);
+
+                const totalKg = itens.reduce((sum, item) => sum + parseFloat(item.quantidade_kg), 0);
+                const dataReferencia = data || carga.data;
+
+                for (const item of itens) {
+                    const produtorResult = await client.query('SELECT tipo_id FROM produtores WHERE id = $1', [item.produtor_id]);
+                    const produtor = produtorResult.rows[0];
+                    let valorItem = await calcularValorItem(totalKg, produtor.tipo_id, dataReferencia);
+
+                    if (itens.length > 1) {
+                        const proporcao = parseFloat(item.quantidade_kg) / totalKg;
+                        valorItem = valorItem * proporcao;
+                    } else {
+                        valorItem = await calcularValorItem(parseFloat(item.quantidade_kg), produtor.tipo_id, dataReferencia);
+                    }
+
+                    await client.query(
+                        `INSERT INTO itens_carga (carga_id, fabrica_id, produtor_id, racao_id, nota_fiscal, quantidade_kg, valor_calculado)
+                         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+                        [cargaId, item.fabrica_id, item.produtor_id, item.racao_id, item.nota_fiscal, item.quantidade_kg, valorItem]
+                    );
+                }
+            }
+            await client.query('COMMIT');
         }
 
         res.json({ message: 'Carga atualizada com sucesso' });
     } catch (error) {
+        if (req.user.tipo === 'admin') await client.query('ROLLBACK');
         console.error('Erro ao atualizar carga:', error);
         res.status(500).json({ error: 'Erro ao atualizar carga' });
+    } finally {
+        client.release();
     }
 });
 
@@ -777,10 +828,12 @@ app.get('/api/relatorios/conferencia', authMiddleware, adminOrConsultaMiddleware
 
         const result = await pool.query(`
       SELECT 
+        c.id as carga_id,
         c.data,
         u.nome as motorista_nome,
         ic.nota_fiscal,
         p.nome as produtor_nome,
+        u.id as motorista_id,
         ic.quantidade_kg,
         ic.valor_calculado
       FROM cargas c
