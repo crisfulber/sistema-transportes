@@ -88,6 +88,9 @@ async function carregarDados() {
 // Carregar dados ao iniciar
 carregarDados();
 
+let relatorioDadosCompletos = [];
+let relatorioDadosAtuais = [];
+
 async function abrirRelatorioConferencia() {
     const mes = document.getElementById('filtroMes').value;
     const ano = document.getElementById('filtroAno').value;
@@ -95,73 +98,101 @@ async function abrirRelatorioConferencia() {
     const content = document.getElementById('relatorioContent');
 
     modal.classList.add('show');
-    content.innerHTML = `
-        <div class="loading">
-            <div class="spinner"></div>
-            <p>Carregando relatório...</p>
-        </div>
-    `;
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Carregando...</p></div>';
 
     try {
-        const dados = await apiRequest(`/relatorios/conferencia?mes=${mes}&ano=${ano}`);
-
-        if (dados.length === 0) {
-            content.innerHTML = `
-                <div class="empty-state">
-                    <h3>Nenhum dado encontrado</h3>
-                    <p>Não há registros para o período selecionado.</p>
-                </div>
-            `;
-            return;
+        const selectMotorista = document.getElementById('filtroRelatorioMotorista');
+        if (selectMotorista.options.length <= 1) {
+            const motoristas = await apiRequest('/motoristas');
+            motoristas.forEach(m => {
+                selectMotorista.innerHTML += `<option value="${m.id}">${m.nome}${m.ativo === 0 ? ' (Inativo)' : ''}</option>`;
+            });
         }
 
-        content.innerHTML = `
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Data</th>
-                            <th>Nota Fiscal</th>
-                            <th>Produtor</th>
-                            <th>Motorista</th>
-                            <th>Quantidade (kg)</th>
-                            <th>Valor Frete</th>
-                            <th>Ações</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${dados.map(d => `
-                            <tr>
-                                <td>${formatDate(d.data)}</td>
-                                <td><strong>${d.nota_fiscal}</strong></td>
-                                <td>${d.produtor_nome}</td>
-                                <td>${d.motorista_nome}</td>
-                                <td>${formatNumber(d.quantidade_kg, 2)}</td>
-                                <td>${formatCurrency(d.valor_calculado)}</td>
-                                <td><button class="btn-sm btn-view" onclick="editarCarga(${d.carga_id})">Editar</button></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                    <tfoot style="background: var(--gray-lighter); font-weight: 700;">
-                        <tr>
-                            <td colspan="4" style="text-align: right;">TOTAL:</td>
-                            <td>${formatNumber(dados.reduce((sum, d) => sum + d.quantidade_kg, 0), 2)}</td>
-                            <td>${formatCurrency(dados.reduce((sum, d) => sum + d.valor_calculado, 0))}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-            <div style="margin-top: 24px; text-align: right;">
-                <button class="btn-primary" onclick="window.print()">Imprimir Relatório</button>
-            </div>
-        `;
+        relatorioDadosCompletos = await apiRequest(`/relatorios/conferencia?mes=${mes}&ano=${ano}`);
+        filtrarRelatorioFrontend();
     } catch (error) {
-        content.innerHTML = `
-            <div class="error-message show">
-                Erro ao carregar relatório: ${error.message}
-            </div>
-        `;
+        content.innerHTML = `<div class="error-message show">Erro: ${error.message}</div>`;
     }
+}
+
+function filtrarRelatorioFrontend() {
+    const filtro = document.getElementById('filtroRelatorioMotorista').value;
+
+    if (filtro) {
+        relatorioDadosAtuais = relatorioDadosCompletos.filter(d => d.motorista_id == filtro);
+    } else {
+        relatorioDadosAtuais = [...relatorioDadosCompletos];
+    }
+
+    renderizarRelatorio(relatorioDadosAtuais);
+}
+
+function renderizarRelatorio(dados) {
+    const content = document.getElementById('relatorioContent');
+
+    if (dados.length === 0) {
+        content.innerHTML = `<div class="empty-state"><h3>Nenhum dado encontrado</h3></div>`;
+        return;
+    }
+
+    content.innerHTML = `
+        <div class="table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Nota Fiscal</th>
+                        <th>Produtor</th>
+                        <th>Motorista</th>
+                        <th>Quantidade (kg)</th>
+                        <th>Valor Frete</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${dados.map(d => `
+                        <tr>
+                            <td>${formatDate(d.data)}</td>
+                            <td>${d.nota_fiscal}</td>
+                            <td>${d.produtor_nome}</td>
+                            <td>${d.motorista_nome}</td>
+                            <td>${formatNumber(d.quantidade_kg, 2)}</td>
+                            <td>${formatCurrency(d.valor_calculado)}</td>
+                            <td><button class="btn-sm btn-view" onclick="editarCarga(${d.carga_id})">Editar</button></td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+                <tfoot style="background: var(--gray-lighter); font-weight: 700;">
+                    <tr>
+                        <td colspan="4" style="text-align: right;">TOTAL:</td>
+                        <td>${formatNumber(dados.reduce((sum, d) => sum + parseFloat(d.quantidade_kg), 0), 2)}</td>
+                        <td>${formatCurrency(dados.reduce((sum, d) => sum + parseFloat(d.valor_calculado), 0))}</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    `;
+}
+
+function exportarRelatorioExcel() {
+    if (!relatorioDadosAtuais || relatorioDadosAtuais.length === 0) {
+        alert('Sem dados para exportar');
+        return;
+    }
+
+    let csv = 'Data;Nota Fiscal;Produtor;Motorista;Quantidade (kg);Valor Frete\n';
+
+    relatorioDadosAtuais.forEach(d => {
+        csv += `${formatDate(d.data)};${d.nota_fiscal};${d.produtor_nome};${d.motorista_nome};${d.quantidade_kg.toString().replace('.', ',')};${d.valor_calculado.toString().replace('.', ',')}\n`;
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'relatorio_conferencia.csv';
+    link.click();
 }
 
 function fecharModalRelatorio() {
@@ -195,7 +226,7 @@ async function carregarDadosEdicao() {
         // Popular select de motorista
         const selectMotorista = document.getElementById('editMotoristaId');
         selectMotorista.innerHTML = editCache.motoristas.map(m =>
-            `<option value="${m.id}">${m.nome}</option>`
+            `<option value="${m.id}">${m.nome}${m.ativo === 0 ? ' (Inativo)' : ''}</option>`
         ).join('');
 
     } catch (error) {

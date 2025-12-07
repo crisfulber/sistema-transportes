@@ -188,10 +188,31 @@
                 <h2 class="modal-title">Relatório de Conferência</h2>
                 <button class="btn-close" onclick="fecharModalRelatorio()">&times;</button>
             </div>
-            <div class="modal-body" id="relatorioContent">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <p>Carregando...</p>
+            <div class="modal-body">
+                <div class="form-row" style="margin-bottom: 24px; align-items: flex-end; gap: 16px;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Filtrar Motorista</label>
+                        <select id="filtroRelatorioMotorista" onchange="filtrarRelatorioFrontend()">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn-secondary" onclick="exportarRelatorioExcel()"
+                            style="margin-bottom: 0; padding: 10px 16px;">
+                            Exportar XLS
+                        </button>
+                        <button class="btn-primary" onclick="window.print()"
+                            style="margin-bottom: 0; padding: 10px 16px;">
+                            Imprimir
+                        </button>
+                    </div>
+                </div>
+
+                <div id="relatorioContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Carregando...</p>
+                    </div>
                 </div>
             </div>
         </div>

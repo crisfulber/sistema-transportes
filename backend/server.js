@@ -808,8 +808,9 @@ app.get('/api/dashboard/resumo', authMiddleware, adminOrConsultaMiddleware, asyn
         AND EXTRACT(MONTH FROM c.data) = $1
         AND EXTRACT(YEAR FROM c.data) = $2
       LEFT JOIN itens_carga ic ON c.id = ic.carga_id
-      WHERE u.tipo = 'motorista' AND u.ativo = 1
+      WHERE u.tipo = 'motorista'
       GROUP BY u.id
+      HAVING (MAX(u.ativo) = 1 OR COUNT(DISTINCT c.id) > 0)
       ORDER BY valor_total DESC
     `, [mesAtual, anoAtual]);
 

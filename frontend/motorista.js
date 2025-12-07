@@ -13,6 +13,11 @@ let itemIndex = 1;
 // Definir data de hoje como padrão
 document.getElementById('data').valueAsDate = new Date();
 
+// Inicializar filtros
+const hoje = new Date();
+document.getElementById('filtroMes').value = hoje.getMonth() + 1;
+document.getElementById('filtroAno').value = hoje.getFullYear();
+
 // Carregar dados iniciais
 async function carregarDados() {
     try {
@@ -36,25 +41,31 @@ function popularSelects() {
     const selectsProdutor = document.querySelectorAll('select[name="produtor_id"]');
 
     selectsFabrica.forEach(select => {
+        const valorAtual = select.value;
         select.innerHTML = '<option value="">Selecione...</option>';
         fabricas.forEach(f => {
             select.innerHTML += `<option value="${f.id}">${f.nome}</option>`;
         });
+        if (valorAtual) select.value = valorAtual;
     });
 
     selectsRacao.forEach(select => {
+        const valorAtual = select.value;
         select.innerHTML = '<option value="">Selecione...</option>';
         racoes.forEach(r => {
             select.innerHTML += `<option value="${r.id}">${r.nome}</option>`;
         });
+        if (valorAtual) select.value = valorAtual;
     });
 
     selectsProdutor.forEach(select => {
+        const valorAtual = select.value;
         select.innerHTML = '<option value="">Selecione...</option>';
         produtores.forEach(p => {
             const localizacao = p.localizacao ? ` (${p.localizacao})` : '';
             select.innerHTML += `<option value="${p.id}">${p.nome}${localizacao} - ${p.tipo_nome}</option>`;
         });
+        if (valorAtual) select.value = valorAtual;
     });
 }
 
@@ -62,9 +73,8 @@ async function carregarCargas() {
     const container = document.getElementById('cargasContainer');
 
     try {
-        const hoje = new Date();
-        const mes = hoje.getMonth() + 1;
-        const ano = hoje.getFullYear();
+        const mes = document.getElementById('filtroMes').value;
+        const ano = document.getElementById('filtroAno').value;
 
         const cargas = await apiRequest(`/cargas?mes=${mes}&ano=${ano}`);
 
@@ -123,9 +133,8 @@ async function carregarCargas() {
 
 async function carregarEstatisticas() {
     try {
-        const hoje = new Date();
-        const mes = hoje.getMonth() + 1;
-        const ano = hoje.getFullYear();
+        const mes = document.getElementById('filtroMes').value;
+        const ano = document.getElementById('filtroAno').value;
 
         const cargas = await apiRequest(`/cargas?mes=${mes}&ano=${ano}`);
 

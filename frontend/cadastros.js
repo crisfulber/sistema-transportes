@@ -101,6 +101,7 @@ function editarMotorista(id) {
     // Preencher campos
     form.querySelector('input[name="nome"]').value = motorista.nome;
     form.querySelector('input[name="username"]').value = motorista.username;
+    form.querySelector('select[name="ativo"]').value = motorista.ativo;
 
     const senhaInput = form.querySelector('input[name="senha"]');
     senhaInput.required = false;
@@ -113,6 +114,8 @@ document.getElementById('formMotorista').addEventListener('submit', async (e) =>
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
+
+    if (data.ativo) data.ativo = parseInt(data.ativo);
 
     try {
         if (editandoId) {
