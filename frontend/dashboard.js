@@ -7,12 +7,13 @@ if (usuario.tipo !== 'admin' && usuario.tipo !== 'consulta') {
     window.location.href = 'motorista.html';
 }
 
-// Esconder botões de cadastro para Usuários
+// Esconder botões restritos para Consulta
 if (usuario.tipo === 'consulta') {
     const cadastrosCard = document.getElementById('cadastrosCard');
-    if (cadastrosCard) {
-        cadastrosCard.style.display = 'none';
-    }
+    const btnSenha = document.getElementById('btnSenhaNav');
+
+    if (cadastrosCard) cadastrosCard.style.display = 'none';
+    if (btnSenha) btnSenha.style.display = 'none';
 }
 
 document.getElementById('userName').textContent = usuario.nome;
@@ -84,7 +85,6 @@ async function carregarDados() {
     }
 }
 
-// Carregar dados ao iniciar
 // Carregar dados ao iniciar
 carregarDados();
 
@@ -315,7 +315,7 @@ document.getElementById('formEditarCarga').addEventListener('submit', async (e) 
     });
 
     if (cargaData.itens.length === 0) {
-        alert('Adicione pelo menos um item');
+        showError('Adicione pelo menos um item', 'errorEditarCarga');
         return;
     }
 
@@ -324,13 +324,14 @@ document.getElementById('formEditarCarga').addEventListener('submit', async (e) 
             method: 'PUT',
             body: JSON.stringify(cargaData)
         });
-        alert('Carga atualizada com sucesso!');
-        fecharModalEditarCarga();
-        fecharModalRelatorio();
-        // Recarregar relatório se estiver aberto, mas acabei de fechar.
-        // Recarregar dados do dashboard
-        carregarDados();
+        showSuccess('Carga atualizada com sucesso!', 'successEditarCarga');
+
+        setTimeout(() => {
+            fecharModalEditarCarga();
+            fecharModalRelatorio();
+            carregarDados();
+        }, 1500);
     } catch (error) {
-        alert('Erro ao salvar: ' + error.message);
+        showError('Erro ao salvar: ' + error.message, 'errorEditarCarga');
     }
 });

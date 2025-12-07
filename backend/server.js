@@ -174,7 +174,16 @@ app.get('/api/cargas', authMiddleware, async (req, res) => {
 app.get('/api/cargas/:id', authMiddleware, async (req, res) => {
     try {
         const cargaResult = await pool.query(`
-      SELECT c.*, u.nome as motorista_nome
+      SELECT 
+        c.*, 
+        u.nome as motorista_nome,
+        COALESCE(
+           (SELECT valor_percentual FROM historico_comissoes 
+            WHERE vigencia_inicio <= c.data 
+            AND (vigencia_fim >= c.data OR vigencia_fim IS NULL) 
+            ORDER BY vigencia_inicio DESC LIMIT 1), 
+           (SELECT valor::real FROM configuracoes WHERE chave = 'comissao_motorista')
+        ) as percentual_comissao
       FROM cargas c
       LEFT JOIN usuarios u ON c.motorista_id = u.id
       WHERE c.id = $1
