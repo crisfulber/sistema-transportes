@@ -103,8 +103,8 @@ async function carregarCargas() {
                                 <td>${c.km_final ? formatNumber(c.km_final - c.km_inicial, 1) + ' km' : '<span class="badge badge-warning">Em andamento</span>'}</td>
                                 <td><strong>${formatCurrency(c.valor_total * (c.percentual_comissao / 100))}</strong> <small>(${c.percentual_comissao}%)</small></td>
                                 <td>
-                                    <button class="btn-sm btn-view" onclick="verDetalhes(${c.id})">Ver Detalhes</button>
-                                    ${!c.km_final ? `<button class="btn-sm btn-primary" onclick="abrirModalFinalizar(${c.id})" style="margin-left: 8px;">Finalizar</button>` : ''}
+                                    <button class="btn-sm btn-primary" onclick="verDetalhes(${c.id})">Ver Detalhes</button>
+                                    ${!c.km_final ? `<button class="btn-sm btn-secondary" onclick="abrirModalFinalizar(${c.id})" style="margin: 5px 0">Finalizar</button>` : ''}
                                 </td>
                             </tr>
                         `).join('')}
